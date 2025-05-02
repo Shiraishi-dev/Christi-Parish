@@ -61,7 +61,7 @@ if ($conn) {
         <img src="includes/logo.jpg" alt="profile-img">
         <div class="user-detail">
           <h3><?php echo htmlspecialchars($username); ?></h3>
-          <span>Admin</span>
+          <span>User</span>
         </div>
       </div>
     </div>
@@ -89,7 +89,7 @@ if ($conn) {
       </div>
     <?php endforeach; ?>
   <?php else: ?>
-    <p>No wedding applications found.</p>
+    <p>No pending request applications found.</p>
   <?php endif; ?>
 </div>
 
