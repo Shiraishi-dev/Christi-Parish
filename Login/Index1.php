@@ -5,7 +5,7 @@ session_start(); // Start the session
 // Check if the user is logged in
 if (!isset($_SESSION['username'])) {
     // If not, redirect them to the login page
-    echo "<script>window.open(.php','_self')</script>";
+    echo "<script>window.open(index.php','_self')</script>";
     exit(); // Ensure the rest of the page doesn't load
 }
 
