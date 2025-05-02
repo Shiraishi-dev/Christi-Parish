@@ -4,32 +4,41 @@ session_start(); // Start the session
 
 // Login Logic
 if(isset($_POST['login'])) {
-    $username = $con->real_escape_string($_POST['username']);
-    $password = $con->real_escape_string($_POST['password']);
+    $username = $conn->real_escape_string($_POST['username']);
+    $password = $conn->real_escape_string($_POST['password']);
 
     $sql = "SELECT * FROM user WHERE username='$username' AND password='$password'";
-    $result = $con->query($sql);
+    $result = $conn->query($sql);
 
     if($result->num_rows > 0) {
-        // Save the username in the session
+        $row = $result->fetch_assoc();
         $_SESSION['username'] = $username;
-        echo "<script>window.open('user.php','_self')</script>";
+        $_SESSION['user_type'] = $row['user_type']; // Save user type
+
+        if ($row['user_type'] === 'admin') {
+            echo "<script>window.open('wedding.admin.php','_self')</script>";
+        } else {
+            echo "<script>window.open('user.php','_self')</script>";
+        }
     } else {
         echo "<script>alert('Invalid username or password!')</script>";
     }
 }
 
+
 // Register Logic
 if(isset($_POST['register'])) {
-    $fullname = $con->real_escape_string($_POST['fullname']);
-    $email = $con->real_escape_string($_POST['email']);
-    $mobile = $con->real_escape_string($_POST['mobile_number']);
-    $username = $con->real_escape_string($_POST['username']);
-    $password = $con->real_escape_string($_POST['password']);
+    $fullname = $conn->real_escape_string($_POST['fullname']);
+    $email = $conn->real_escape_string($_POST['email']);
+    $mobile = $conn->real_escape_string($_POST['mobile_number']);
+    $username = $conn->real_escape_string($_POST['username']);
+    $password = $conn->real_escape_string($_POST['password']);
+
+    $user_type = "user";
 
     // Using prepared statement to avoid SQL injection
-    $sql = $con->prepare("INSERT INTO user (fullname, email, username, password, mobile_number) VALUES (?, ?, ?, ?, ?)");
-    $sql->bind_param("sssss", $fullname, $email, $username, $password, $mobile);
+    $sql = $conn->prepare("INSERT INTO user (fullname, email, username, password, mobile_number, user_type) VALUES (?, ?, ?, ?, ?,?)");
+    $sql->bind_param("ssssss", $fullname, $email, $username, $password, $mobile, $user_type);
     
     if($sql->execute()) {
         echo "<script>alert('Successfully Registered!')</script>";

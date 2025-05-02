@@ -1,3 +1,31 @@
+<?php
+include('config.php'); 
+session_start(); // Start the session
+
+
+if (!isset($_SESSION['username'])) {
+    echo "<script>window.open(.php','_self')</script>";
+    exit(); 
+}
+
+$username = $_SESSION['username']; 
+
+$results = [];
+
+if ($conn) {
+    $sql = "SELECT id, deceased_name, date_of_death, place_of_death,date_of_burial, funeral_home, death_certificate, barangay_clearance, valid_id, created_at FROM burial_requirments WHERE event_type='burial'";
+    $query = $conn->query($sql);
+
+    if ($query && $query->num_rows > 0) {
+        while ($row = $query->fetch_assoc()) {
+            $results[] = $row;
+        }
+    }
+
+    $conn->close();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,7 +47,7 @@
     <ul class="sidebar-links">
       <h4><span>Book Request</span></h4>
       <li><a href="wedding.admin.php"><span class="material-symbols-outlined">concierge</span>Wedding</a></li>
-      <li><a href="baptismal.admin.php"><span class="material-symbols-outlined">concierge</span>Baptismal</a></li>
+      <li><a href="baptismal.admin.php" class="active"><span class="material-symbols-outlined">concierge</span>Baptismal</a></li>
       <li><a href="burial.admin.php"><span class="material-symbols-outlined">concierge</span>Burial</a></li>
       <h4><span>Menu</span></h4>
       <li><a href="pending.book.admin.php"><span class="material-symbols-outlined">pending_actions</span>Pending Booked</a></li>
@@ -31,7 +59,7 @@
       <div class="user-profile">
         <img src="includes/profile.jpg" alt="profile-img">
         <div class="user-detail">
-          <h3>Escobido, Kim L.</h3>
+          <h3><?php echo htmlspecialchars($username); ?></h3>
           <span>Admin</span>
         </div>
       </div>
@@ -45,74 +73,20 @@
   <div class="client-requests">
     <h2>Burial Book Request List</h2>
 
-    <div class="request-card">
-      <h3>John Doe</h3>
-      <p><strong>Service:</strong> Wedding</p>
-      <p><strong>Date:</strong> May 5, 2025</p>
-      <p><strong>Status:</strong> Pending</p>
-      <p><strong>MBL:</strong> 09095267296</p>
-      <button class="view-more-btn">View More</button>
+    <?php if (!empty($results)): ?>
+      <?php foreach ($results as $row): ?>
+        <div class="request-card">
+          <h3>
+            <?= htmlspecialchars($row['deceased_name']) ?>
+        </h3>
+        <a href="baptismal.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
     </div>
-
-    <div class="request-card">
-      <h3>Jane Smith</h3>
-      <p><strong>Service:</strong> Baptismal</p>
-      <p><strong>Date:</strong> June 10, 2025</p>
-      <p><strong>Status:</strong> Approved</p>
-      <p><strong>MBL:</strong> 09917398085</p>
-      <button class="view-more-btn">View More</button>
-    </div>
-
-    
+  <?php endforeach; ?>
+<?php else: ?>
+  <p>No baptismal applications found.</p>
+<?php endif; ?>
 
   </div>
-
-  <!-- Popup Modal -->
-  <div class="modal" id="infoModal">
-    <div class="modal-content">
-      <span class="close-button" id="closeModal">&times;</span>
-      <h2 id="modalClientName">Client Name</h2>
-      <p><strong>Service:</strong> <span id="modalService"></span></p>
-      <p><strong>Date:</strong> <span id="modalDate"></span></p>
-      <p><strong>Status:</strong> <span id="modalStatus"></span></p>
-      <p><strong>MBL:</strong> <span id="modalNumber"></span></p>
-      <p><strong>Additional Info:</strong> <span id="modalAdditional"></span></p>
-      <button class="confirm">Confirm</button>
-      <button class="delete">Delete</button>
-    </div>
-  </div>
-
-  <!-- JavaScript -->
-  <script>
-    const modal = document.getElementById('infoModal');
-    const closeModal = document.getElementById('closeModal');
-
-    const viewButtons = document.querySelectorAll('.view-more-btn');
-
-    viewButtons.forEach(button => {
-      button.addEventListener('click', function() {
-        const card = button.parentElement;
-        document.getElementById('modalClientName').textContent = card.querySelector('h3').textContent;
-        document.getElementById('modalService').textContent = card.querySelector('p:nth-of-type(1)').textContent.replace('Service: ', '');
-        document.getElementById('modalDate').textContent = card.querySelector('p:nth-of-type(2)').textContent.replace('Date: ', '');
-        document.getElementById('modalStatus').textContent = card.querySelector('p:nth-of-type(3)').textContent.replace('Status: ', '');
-        document.getElementById('modalNumber').textContent = card.querySelector('p:nth-of-type(4)').textContent.replace('MBL: ', '');
-        document.getElementById('modalAdditional').textContent = "Additional details about the client request..."; // You can update this part
-
-        modal.style.display = "block";
-      });
-    });
-
-    closeModal.addEventListener('click', function() {
-      modal.style.display = "none";
-    });
-
-    window.addEventListener('click', function(event) {
-      if (event.target === modal) {
-        modal.style.display = "none";
-      }
-    });
-  </script>
 
 </body>
 </html>

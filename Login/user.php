@@ -33,6 +33,7 @@ $username = $_SESSION['username'];
                     <li><a href="" class="About-Us">About Us</a></li>
                     <!-- Logout Button -->
                     <li>
+                        <a href="pending.book.user.php" class="nav-log">My bookings</a>
                         <a href="logout.php" class="nav-log">Logout</a>
                     </li>
                 </ul>
