@@ -74,7 +74,6 @@ if(isset($_POST['register'])) {
                     <button class="btn" type="submit" name="login">Login</button>
                 </form>
                 <p class="account">Don't have an account? <a href="#" onclick="showForm('register')">Register</a></p>
-                <a href="index.php">Home</a>
             </div>
             <div class="form-img">
                 <img src="includes/logo.jpg" class="img">
@@ -99,7 +98,6 @@ if(isset($_POST['register'])) {
                     <button class="btn" type="submit" name="register">Create</button>
                 </form>
                 <p class="account">Already have an account? <a href="#" onclick="showForm('login')">Login</a></p>
-                <a href="index.php">Home</a>
             </div>
             <div class="form-img">
                 <img src="includes/logo.jpg" class="img">

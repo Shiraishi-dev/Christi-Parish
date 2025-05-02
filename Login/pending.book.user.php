@@ -53,6 +53,7 @@ if ($conn) {
       <h4><span>Menu</span></h4>
       <li><a href="pending.book.user.php"><span class="material-symbols-outlined">pending_actions</span>Pending</a></li>
       <li><a href="pending.book.user.php"><span class="material-symbols-outlined">done_all</span>Approved Events</a></li>
+      <li><a href="user.php"><span class="material-symbols-outlined">home</span>Home</a></li>
       <li><a href="logout.php"><span class="material-symbols-outlined">logout</span>Logout</a></li>
     </ul>
 
