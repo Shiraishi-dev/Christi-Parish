@@ -50,7 +50,6 @@ if ($conn) {
       <li><a href="baptismal.admin.php" class="active"><span class="material-symbols-outlined">concierge</span>Baptismal</a></li>
       <li><a href="burial.admin.php"><span class="material-symbols-outlined">concierge</span>Burial</a></li>
       <h4><span>Menu</span></h4>
-      <li><a href="pending.book.admin.php"><span class="material-symbols-outlined">pending_actions</span>Pending Booked</a></li>
       <li><a href="Scheduled.admin.php"><span class="material-symbols-outlined">event</span>Events Schedule</a></li>
       <li><a href="index.php"><span class="material-symbols-outlined">logout</span>Logout</a></li>
     </ul>
