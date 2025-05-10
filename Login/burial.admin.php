@@ -13,7 +13,7 @@ $username = $_SESSION['username'];
 $results = [];
 
 if ($conn) {
-    $sql = "SELECT id, deceased_name, date_of_death, place_of_death,date_of_burial, funeral_home, death_certificate, barangay_clearance, valid_id, created_at FROM burial_requirments WHERE event_type='burial'";
+    $sql = "SELECT id, deceased_name, date_of_death, place_of_death,date_of_burial, funeral_home, death_certificate, barangay_clearance, valid_id, created_at FROM burial_requirements WHERE event_type='burial'";
     $query = $conn->query($sql);
 
     if ($query && $query->num_rows > 0) {
@@ -78,7 +78,7 @@ if ($conn) {
           <h3>
             <?= htmlspecialchars($row['deceased_name']) ?>
         </h3>
-        <a href="baptismal.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
+        <a href="burial.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
     </div>
   <?php endforeach; ?>
 <?php else: ?>

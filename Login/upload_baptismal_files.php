@@ -62,7 +62,7 @@ if ($conn) {
     );
     
     if ($stmt->execute()) {
-        $submissionMessage = "Baptismal application submitted successfully!";
+        echo "<script>alert('Baptismal request submitted successfully!')</script>";
     } else {
         $submissionMessage = "Error: " . $stmt->error;
     }

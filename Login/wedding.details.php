@@ -10,6 +10,25 @@ $id = intval($_GET['id']);
 $data = null;
 
 if ($conn) {
+    // Handle confirm action
+    if (isset($_POST['confirm'])) {
+        $stmt = $conn->prepare("UPDATE wedding_applications SET status = 'approved' WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    // Handle delete action
+    if (isset($_POST['delete'])) {
+        $stmt = $conn->prepare("DELETE FROM wedding_applications WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $stmt->close();
+        header("Location: wedding.admin.php");
+        exit;
+    }
+
+    // Fetch data again after update or delete
     $stmt = $conn->prepare("SELECT * FROM wedding_applications WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
@@ -46,6 +65,7 @@ function renderFileField($label, $path) {
   <meta charset="UTF-8">
   <title>Wedding Application Details</title>
   <link rel="stylesheet" href="styles/test-admin.css">
+  <link rel="stylesheet" href="test1.css">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -71,20 +91,27 @@ function renderFileField($label, $path) {
       border-radius: 8px;
     }
 
-    a.button {
+    a.button, button {
       display: inline-block;
       background-color: #ba5d5d;
       color: #fff;
       padding: 8px 16px;
+      border: none;
       border-radius: 5px;
       text-decoration: none;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .button-container {
       margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
 
-  <a href="wedding.admin.php" class="button">← Back to List</a>
+    <a href="wedding.admin.php" class="button">← Back to List</a>
+
   <h2>Wedding Application Details</h2>
   <ul>
     <li><strong>Wife:</strong> <?= htmlspecialchars($data['wife_first_name'] . ' ' . $data['wife_middle_name'] . ' ' . $data['wife_last_name']) ?></li>
@@ -92,6 +119,7 @@ function renderFileField($label, $path) {
     <li><strong>Wife Age:</strong> <?= htmlspecialchars($data['wife_age']) ?></li>
     <li><strong>Husband Age:</strong> <?= htmlspecialchars($data['husband_age']) ?></li>
     <li><strong>Event Type:</strong> <?= htmlspecialchars($data['event_type']) ?></li>
+    <li><strong>Status:</strong> <?= htmlspecialchars(ucfirst($data['status'] ?? 'Pending')) ?></li>
     <li><strong>Submitted At:</strong> <?= htmlspecialchars($data['submitted_at']) ?></li>
 
     <?php
@@ -106,6 +134,13 @@ function renderFileField($label, $path) {
       renderFileField('Canonical Interview', $data['canonical_interview']);
     ?>
   </ul>
+
+  <div class="button-container">
+    <form method="post" style="display:inline;">
+      <button class="submit-button" type="submit" name="confirm">Confirm</button>
+      <button class="delete-button" type="submit" name="delete" onclick="return confirm('Are you sure you want to delete this application?');">Delete</button>
+    </form>
+  </div>
 
 </body>
 </html>

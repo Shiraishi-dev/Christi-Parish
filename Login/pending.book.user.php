@@ -2,34 +2,34 @@
 include('config.php');
 session_start(); // Start the session
 
-
 if (!isset($_SESSION['username'])) {
-    echo "<script>window.open(.php','_self')</script>";
+    echo "<script>window.open('login.php','_self')</script>";
     exit(); 
 }
 
-
 $username = $_SESSION['username']; 
-
 $results = [];
 
-
 if ($conn) {
-    $sql = "SELECT id, wife_first_name, wife_last_name, husband_first_name, husband_last_name FROM wedding_applications WHERE event_type='wedding'";
-    $query = $conn->query($sql);
+    $sql = "SELECT id, wife_first_name, wife_last_name, husband_first_name, husband_last_name 
+            FROM wedding_applications 
+            WHERE event_type = 'wedding' AND username = ?";
 
-    if ($query && $query->num_rows > 0) {
-        while ($row = $query->fetch_assoc()) {
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
             $results[] = $row;
         }
     }
 
+    $stmt->close();
     $conn->close();
 }
 ?>
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -72,28 +72,26 @@ if ($conn) {
   <div class="top1"></div>
 
   <!-- Main Content -->
-
   <div class="client-requests">
-  <h2>You're Pending Book Request List</h2>
+    <h2>Your Pending Wedding Applications</h2>
 
-  <?php if (!empty($results)): ?>
-    <?php foreach ($results as $row): ?>
-      <div class="request-card">
-        <h3>
-          <?php
-            echo htmlspecialchars($row['husband_first_name'] . ' ' . $row['husband_last_name']) .
-                 ' & ' .
-                 htmlspecialchars($row['wife_first_name'] . ' ' . $row['wife_last_name']);
-          ?>
-        </h3>
-        <a href="wedding.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
-      </div>
-    <?php endforeach; ?>
-  <?php else: ?>
-    <p>No pending request applications found.</p>
-  <?php endif; ?>
-</div>
-
+    <?php if (!empty($results)): ?>
+      <?php foreach ($results as $row): ?>
+        <div class="request-card">
+          <h3>
+            <?php
+              echo htmlspecialchars($row['husband_first_name'] . ' ' . $row['husband_last_name']) .
+                   ' & ' .
+                   htmlspecialchars($row['wife_first_name'] . ' ' . $row['wife_last_name']);
+            ?>
+          </h3>
+          <a href="wedding.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
+        </div>
+      <?php endforeach; ?>
+    <?php else: ?>
+      <p>No pending request applications found.</p>
+    <?php endif; ?>
+  </div>
 
 </body>
 </html>
