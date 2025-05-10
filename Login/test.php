@@ -1,68 +1,74 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Wedding Date Picker</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 30px;
+<?php
+// Simulate booked slots for different dates
+$booked_slots = [
+    '2025-05-12' => ['09:00', '13:00'], // Booked slots for May 12
+    '2025-05-15' => ['08:00', '15:00'], // Booked slots for May 15
+];
+
+$time_slots = [
+    '08:00' => '8:00 AM - 9:00 AM',
+    '09:00' => '9:00 AM - 10:00 AM',
+    '13:00' => '1:00 PM - 2:00 PM',
+    '15:00' => '3:00 PM - 4:00 PM',
+];
+
+$available_dates = array_keys($booked_slots);
+?>
+
+<form method="POST">
+    <label for="wedding_date">Select Date:</label>
+    <select name="wedding_date" id="wedding_date" required onchange="updateTimeSlots()">
+        <option value="">-- Choose a date --</option>
+        <?php foreach ($available_dates as $date): ?>
+            <option value="<?= $date ?>"><?= $date ?></option>
+        <?php endforeach; ?>
+    </select>
+
+    <label for="time_slot">Select Time Slot:</label>
+    <select name="time_slot" id="time_slot" required>
+        <option value="">-- Choose a time --</option>
+    </select>
+
+    <button type="submit">Submit</button>
+</form>
+
+<script>
+function updateTimeSlots() {
+    var selectedDate = document.getElementById('wedding_date').value;
+    var timeSlotSelect = document.getElementById('time_slot');
+    timeSlotSelect.innerHTML = '<option value="">-- Choose a time --</option>';
+
+    var bookedSlots = <?= json_encode($booked_slots) ?>;
+    var allTimeSlots = <?= json_encode($time_slots) ?>;
+
+    if (selectedDate && bookedSlots[selectedDate]) {
+        Object.keys(allTimeSlots).forEach(function(slot) {
+            if (bookedSlots[selectedDate].includes(slot)) {
+                timeSlotSelect.innerHTML += `<option value="" disabled style="color:red;">${allTimeSlots[slot]} (Booked)</option>`;
+            } else {
+                timeSlotSelect.innerHTML += `<option value="${slot}">${allTimeSlots[slot]}</option>`;
+            }
+        });
+    } else {
+        Object.keys(allTimeSlots).forEach(function(slot) {
+            timeSlotSelect.innerHTML += `<option value="${slot}">${allTimeSlots[slot]}</option>`;
+        });
     }
+}
 
-    .date-label {
-      font-size: 18px;
-      margin-bottom: 10px;
+// Ensure function runs when page loads (for default selections)
+document.addEventListener("DOMContentLoaded", function() {
+    updateTimeSlots();
+});
+</script>
+
+<?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $selected_date = $_POST['wedding_date'] ?? '';
+    $selected_time = $_POST['time_slot'] ?? '';
+
+    if (!empty($selected_date) && !empty($selected_time)) {
+        echo "<p>You selected: <strong>" . htmlspecialchars($selected_date) . " - " . htmlspecialchars($time_slots[$selected_time]) . "</strong></p>";
     }
-
-    input {
-      font-size: 16px;
-      padding: 8px;
-      width: 200px;
-    }
-
-    /* Red styling for disabled (booked or weekend) days */
-    .flatpickr-day.disabled {
-      background-color: #f8d7da !important;
-      color: #721c24 !important;
-      border-color: #f5c6cb !important;
-      cursor: not-allowed;
-    }
-  </style>
-</head>
-<body>
-
-  <div>
-    <label for="wedding_date" class="date-label">Choose a Wedding Date:</label><br>
-    <input type="text" id="wedding_date" name="wedding_date" required>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script>
-    const approvedDates = [
-      "2025-05-15",
-      "2025-05-20",
-      "2025-06-01"
-    ];
-
-    flatpickr("#wedding_date", {
-      dateFormat: "Y-m-d",
-      minDate: "today",
-      disable: [
-        function(date) {
-          // Disable Saturdays (6) and Sundays (0)
-          return (date.getDay() === 0 || date.getDay() === 6);
-        },
-        ...approvedDates
-      ],
-      onDayCreate: function(dObj, dStr, fp, dayElem) {
-        const date = dayElem.dateObj.toISOString().split("T")[0];
-        if (approvedDates.includes(date) || dayElem.dateObj.getDay() === 0 || dayElem.dateObj.getDay() === 6) {
-          dayElem.title = "Not available";
-        }
-      }
-    });
-  </script>
-
-</body>
-</html>
+}
+?>
