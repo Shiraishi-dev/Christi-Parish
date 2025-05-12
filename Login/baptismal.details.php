@@ -10,6 +10,29 @@ $id = intval($_GET['id']);
 $data = null;
 
 if ($conn) {
+    // Handle confirm action
+    if (isset($_POST['confirm'])) {
+        $stmt = $conn->prepare("UPDATE baptismal_bookings SET status = 'approved' WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $stmt->close();
+
+        echo "<script>alert('Application confirmed successfully!'); window.location.href = 'baptismal.admin.php';</script>";
+        exit;
+    }
+
+    // Handle delete action
+    if (isset($_POST['delete'])) {
+        $stmt = $conn->prepare("DELETE FROM baptismal_bookings WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $stmt->close();
+
+        echo "<script>alert('Application deleted successfully.'); window.location.href = 'baptismal.admin.php';</script>";
+        exit;
+    }
+
+    // Fetch data again
     $stmt = $conn->prepare("SELECT * FROM baptismal_bookings WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
@@ -19,7 +42,7 @@ if ($conn) {
     $conn->close();
 }
 
-if (!$data) {
+if (!$data) { 
     echo "Application not found.";
     exit;
 }
@@ -47,7 +70,7 @@ function renderFileField($label, $path) {
   <title>Baptismal Application Details</title>
   <link rel="stylesheet" href="styles/test-admin.css">
   <link rel="stylesheet" href="test1.css">
-  <style>
+ <style>
     body {
       font-family: Arial, sans-serif;
       margin: 30px;
@@ -72,13 +95,19 @@ function renderFileField($label, $path) {
       border-radius: 8px;
     }
 
-    a.button {
+    a.button, button {
       display: inline-block;
       background-color: #ba5d5d;
       color: #fff;
       padding: 8px 16px;
+      border: none;
       border-radius: 5px;
       text-decoration: none;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .button-container {
       margin-bottom: 20px;
     }
   </style>
@@ -105,6 +134,13 @@ function renderFileField($label, $path) {
       renderFileField('Canonical Interview', $data['canonical_interview']);
     ?>
   </ul>
+
+   <div class="button-container">
+    <form method="post" style="display:inline;">
+      <button class="submit-button" type="submit" name="confirm">Confirm</button>
+      <button class="delete-button" type="submit" name="delete" onclick="return confirm('Are you sure you want to delete this application?');">Delete</button>
+    </form>
+  </div>
 
 </body>
 </html>

@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="styles/Wedding.css" />
 </head>
 <body>
-    <a href="user.php" class="go-back">GO BACK</a>
+    <a href="index1.php" class="go-back">GO BACK</a>
     <h1 class="title">Wedding</h1>
 
     <div class="container">

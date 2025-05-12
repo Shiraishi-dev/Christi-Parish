@@ -10,25 +10,24 @@ if (!isset($_SESSION['username'])) {
 $username = $_SESSION['username']; 
 $results = [];
 
-if ($conn) {
-    $sql = "SELECT id, wife_first_name, wife_last_name, husband_first_name, husband_last_name 
-            FROM wedding_applications 
-            WHERE event_type = 'wedding' AND username = ?";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result && $result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $results[] = $row;
-        }
-    }
-
-    $stmt->close();
-    $conn->close();
+if (!$conn) {
+    die("Database connection failed: " . mysqli_connect_error());
 }
+
+
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("s", $username);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $results[] = $row;
+    }
+}
+
+$stmt->close();
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -45,21 +44,21 @@ if ($conn) {
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="side-header">
-      <img src="includes/logo.jpg" alt="logo">
+      <img src="includes/logo.jpg" alt="Corpus Christi Parish Logo">
       <h2 class="title-a">Corpus Christi Parish</h2>
     </div>
 
     <ul class="sidebar-links">
       <h4><span>Menu</span></h4>
       <li><a href="pending.book.user.php"><span class="material-symbols-outlined">pending_actions</span>Pending</a></li>
-      <li><a href="pending.book.user.php"><span class="material-symbols-outlined">done_all</span>Approved Events</a></li>
+      <li><a href="approved.book.user.php"><span class="material-symbols-outlined">done_all</span>Approved Events</a></li>
       <li><a href="user.php"><span class="material-symbols-outlined">home</span>Home</a></li>
       <li><a href="logout.php"><span class="material-symbols-outlined">logout</span>Logout</a></li>
     </ul>
 
     <div class="user-account">
       <div class="user-profile">
-        <img src="includes/logo.jpg" alt="profile-img">
+        <img src="includes/logo.jpg" alt="User Profile">
         <div class="user-detail">
           <h3><?php echo htmlspecialchars($username); ?></h3>
           <span>User</span>
@@ -80,8 +79,8 @@ if ($conn) {
         <div class="request-card">
           <h3>
             <?php
-              echo htmlspecialchars($row['husband_first_name'] . ' ' . $row['husband_last_name']) .
-                   ' & ' .
+              echo htmlspecialchars($row['husband_first_name'] . ' ' . $row['husband_last_name']) . 
+                   ' & ' . 
                    htmlspecialchars($row['wife_first_name'] . ' ' . $row['wife_last_name']);
             ?>
           </h3>
@@ -89,7 +88,7 @@ if ($conn) {
         </div>
       <?php endforeach; ?>
     <?php else: ?>
-      <p>No pending request applications found.</p>
+      <p>No pending wedding applications found.</p>
     <?php endif; ?>
   </div>
 

@@ -13,7 +13,7 @@ $username = $_SESSION['username'];
 $results = [];
 
 if ($conn) {
-    $sql = "SELECT id, child_first_name, child_last_name, father_first_name, mother_first_name FROM baptismal_bookings WHERE event_type='baptism'";
+    $sql = "SELECT id, child_first_name, child_last_name, father_first_name, mother_first_name FROM baptismal_bookings WHERE event_type='baptism' AND status='Pending'";
     $query = $conn->query($sql);
 
     if ($query && $query->num_rows > 0) {

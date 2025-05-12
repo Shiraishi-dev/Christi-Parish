@@ -1,35 +1,55 @@
 <?php
 include('config.php');
-session_start(); // Start the session
-
+session_start();
 
 if (!isset($_SESSION['username'])) {
-    echo "<script>window.open(.php','_self')</script>";
-    exit(); 
+    echo "<script>window.open('login.php','_self')</script>";
+    exit();
 }
 
+$username = $_SESSION['username'];
 
-$username = $_SESSION['username']; 
-
-$results = [];
-
+$weddings = [];
+$baptisms = [];
+$burials = [];
 
 if ($conn) {
-    $sql = "SELECT id, wife_first_name, wife_last_name, husband_first_name, husband_last_name FROM wedding_applications WHERE event_type='wedding'";
-    $query = $conn->query($sql);
+    // Wedding bookings
+    $sql = "SELECT id, wife_first_name, wife_last_name, husband_first_name, husband_last_name 
+            FROM wedding_applications 
+            WHERE event_type='wedding' AND status='Approved'";
+    $result = $conn->query($sql);
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $weddings[] = $row;
+        }
+    }
 
-    if ($query && $query->num_rows > 0) {
-        while ($row = $query->fetch_assoc()) {
-            $results[] = $row;
+    // Baptismal bookings
+    $sql = "SELECT id, child_first_name, child_last_name, father_first_name, mother_first_name 
+            FROM baptismal_bookings 
+            WHERE event_type='baptism' AND status='Approved'";
+    $result = $conn->query($sql);
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $baptisms[] = $row;
+        }
+    }
+
+    // Burial bookings
+    $sql = "SELECT id, deceased_name, date_of_death, date_of_burial 
+            FROM burial_requirements 
+            WHERE event_type='burial' AND status='Approved'";
+    $result = $conn->query($sql);
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $burials[] = $row;
         }
     }
 
     $conn->close();
 }
 ?>
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -42,60 +62,84 @@ if ($conn) {
 </head>
 <body>
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="side-header">
-      <img src="includes/logo.jpg" alt="logo">
-      <h2 class="title-a">Corpus Christi Parish</h2>
-    </div>
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="side-header">
+    <img src="includes/logo.jpg" alt="logo">
+    <h2 class="title-a">Corpus Christi Parish</h2>
+  </div>
 
-    <ul class="sidebar-links">
-      <h4><span>Book Request</span></h4>
-      <li><a href="wedding.admin.php"><span class="material-symbols-outlined">concierge</span>Wedding</a></li>
-      <li><a href="baptismal.admin.php"><span class="material-symbols-outlined">concierge</span>Baptismal</a></li>
-      <li><a href="burial.admin.php"><span class="material-symbols-outlined">concierge</span>Burial</a></li>
-      <h4><span>Menu</span></h4>
-      <li><a href="Scheduled.admin.php"><span class="material-symbols-outlined">event</span>Events Schedule</a></li>
-      <li><a href="index.php"><span class="material-symbols-outlined">logout</span>Logout</a></li>
-    </ul>
+  <ul class="sidebar-links">
+    <h4><span>Book Request</span></h4>
+    <li><a href="wedding.admin.php"><span class="material-symbols-outlined">concierge</span>Wedding</a></li>
+    <li><a href="baptismal.admin.php"><span class="material-symbols-outlined">concierge</span>Baptismal</a></li>
+    <li><a href="burial.admin.php"><span class="material-symbols-outlined">concierge</span>Burial</a></li>
+    <h4><span>Menu</span></h4>
+    <li><a href="Scheduled.admin.php"><span class="material-symbols-outlined">event</span>Events Schedule</a></li>
+    <li><a href="index.php"><span class="material-symbols-outlined">logout</span>Logout</a></li>
+  </ul>
 
-    <div class="user-account">
-      <div class="user-profile">
-        <img src="includes/profile.jpg" alt="profile-img">
-        <div class="user-detail">
-          <h3><?php echo htmlspecialchars($username); ?></h3>
-          <span>Admin</span>
-        </div>
+  <div class="user-account">
+    <div class="user-profile">
+      <img src="includes/profile.jpg" alt="profile-img">
+      <div class="user-detail">
+        <h3><?php echo htmlspecialchars($username); ?></h3>
+        <span>Admin</span>
       </div>
     </div>
-  </aside>
+  </div>
+</aside>
 
-  <!-- Top Bar -->
-  <div class="top1"></div>
+<!-- Top Bar -->
+<div class="top1"></div>
 
-  <!-- Main Content -->
+<!-- Main Content -->
+<div class="client-requests">
+  <h2>Scheduled Bookings</h2>
 
-  <div class="client-requests">
-  <h2>Scheduled Books</h2>
-
-  <?php if (!empty($results)): ?>
-    <?php foreach ($results as $row): ?>
+  <!-- Weddings -->
+  <h3>Weddings</h3>
+  <?php if (!empty($weddings)): ?>
+    <?php foreach ($weddings as $row): ?>
       <div class="request-card">
-        <h3>
-          <?php
-            echo htmlspecialchars($row['husband_first_name'] . ' ' . $row['husband_last_name']) .
-                 ' & ' .
-                 htmlspecialchars($row['wife_first_name'] . ' ' . $row['wife_last_name']);
-          ?>
-        </h3>
+        <h4><?= htmlspecialchars($row['husband_first_name'] . ' ' . $row['husband_last_name']) ?> & <?= htmlspecialchars($row['wife_first_name'] . ' ' . $row['wife_last_name']) ?></h4>
         <a href="wedding.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
       </div>
     <?php endforeach; ?>
   <?php else: ?>
-    <p>No Scheduled Bookings found.</p>
+    <p>No Wedding Bookings found.</p>
   <?php endif; ?>
-</div>
 
+  <!-- Baptisms -->
+  <h3>Baptisms</h3>
+  <?php if (!empty($baptisms)): ?>
+    <?php foreach ($baptisms as $row): ?>
+      <div class="request-card">
+        <h4><?= htmlspecialchars($row['child_first_name'] . ' ' . $row['child_last_name']) ?></h4>
+        <p>Parents: <?= htmlspecialchars($row['father_first_name']) ?> & <?= htmlspecialchars($row['mother_first_name']) ?></p>
+        <a href="baptism.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
+      </div>
+    <?php endforeach; ?>
+  <?php else: ?>
+    <p>No Baptismal Bookings found.</p>
+  <?php endif; ?>
+
+  <!-- Burials -->
+  <h3>Burials</h3>
+  <?php if (!empty($burials)): ?>
+    <?php foreach ($burials as $row): ?>
+      <div class="request-card">
+        <h4><?= htmlspecialchars($row['deceased_name']) ?></h4>
+        <p>Date of Death: <?= htmlspecialchars($row['date_of_death']) ?></p>
+        <p>Burial Date: <?= htmlspecialchars($row['date_of_burial']) ?></p>
+        <a href="burial.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
+      </div>
+    <?php endforeach; ?>
+  <?php else: ?>
+    <p>No Burial Bookings found.</p>
+  <?php endif; ?>
+
+</div>
 
 </body>
 </html>

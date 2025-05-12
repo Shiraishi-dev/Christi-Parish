@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-    <a href="User.php" class="go-back">GO BACK</a>
+    <a href="index1.php" class="go-back">GO BACK</a>
     <h1 class="title">Baptismal</h1>
 
     <div class="container">

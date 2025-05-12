@@ -16,6 +16,9 @@ if ($conn) {
         $stmt->bind_param("i", $id);
         $stmt->execute();
         $stmt->close();
+
+        echo "<script>alert('Application confirmed successfully!'); window.location.href = 'baptismal.admin.php';</script>";
+        exit;
     }
 
     // Handle delete action
@@ -24,11 +27,12 @@ if ($conn) {
         $stmt->bind_param("i", $id);
         $stmt->execute();
         $stmt->close();
-        header("Location: wedding.admin.php");
+
+        echo "<script>alert('Application deleted successfully.'); window.location.href = 'baptismal.admin.php';</script>";
         exit;
     }
 
-    // Fetch data again after update or delete
+    // Fetch data again
     $stmt = $conn->prepare("SELECT * FROM wedding_applications WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();

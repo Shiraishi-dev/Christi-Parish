@@ -13,7 +13,7 @@ $username = $_SESSION['username'];
 $results = [];
 
 if ($conn) {
-    $sql = "SELECT id, deceased_name, date_of_death, place_of_death,date_of_burial, funeral_home, death_certificate, barangay_clearance, valid_id, created_at FROM burial_requirements WHERE event_type='burial'";
+    $sql = "SELECT id, deceased_name, date_of_death, place_of_death,date_of_burial, funeral_home, death_certificate, barangay_clearance, valid_id, created_at FROM burial_requirements WHERE event_type='burial' AND status='Pending'";
     $query = $conn->query($sql);
 
     if ($query && $query->num_rows > 0) {
