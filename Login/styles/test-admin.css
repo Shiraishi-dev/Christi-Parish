@@ -57,10 +57,11 @@ body {
 
 .sidebar-links li a {
     color: #dbd4d4e3;
-    font-weight: 500;
+    font-weight: 200;
     align-items: center;
     gap: 0 20px;
     display: flex;
+    font-size: small;
     padding: 15px 10px;
     white-space: nowrap;
     text-decoration: none;

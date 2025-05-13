@@ -1,5 +1,8 @@
 <?php
-include('config.php'); // your DB connection
+include('config.php');
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 function uploadFile($field) {
     if (isset($_FILES[$field]) && $_FILES[$field]['error'] === 0) {
@@ -16,7 +19,30 @@ function uploadFile($field) {
     return null;
 }
 
-// Collect form data (without null‑coalescing)
+// Get current logged-in username
+if (!isset($_SESSION['username'])) {
+    echo "<script>alert('User not logged in.'); window.location.href='login.php';</script>";
+    exit();
+}
+
+$username = $_SESSION['username'];
+
+// Fetch user_id from username
+$userQuery = $conn->prepare("SELECT user_id FROM user WHERE username = ?");
+$userQuery->bind_param("s", $username);
+$userQuery->execute();
+$result = $userQuery->get_result();
+$user = $result->fetch_assoc();
+$userQuery->close();
+
+if (!$user) {
+    echo "<script>alert('User not found.');</script>";
+    exit();
+}
+
+$user_id = $user['user_id'];
+
+// Collect form data
 $child_first        = $_POST['child_first_name'];
 $child_middle       = $_POST['child_middle_name'];
 $child_last         = $_POST['child_last_name'];
@@ -41,34 +67,37 @@ $canonical_interview             = uploadFile("canonical_interview");
 
 $event_type = "baptism";
 
-// Insert into database
+// Insert into database (NOW includes user_id!)
 if ($conn) {
     $sql = "INSERT INTO baptismal_bookings (
                 child_first_name, child_middle_name, child_last_name, child_birth_date,
                 father_first_name, father_middle_name, father_last_name,
                 mother_first_name, mother_middle_name, mother_last_name,
                 birth_certificate, marriage_certificate_of_parents, baptismal_seminar_certificate,
-                sponsor_list, valid_ids, barangay_certificate, canonical_interview, event_type
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    
+                sponsor_list, valid_ids, barangay_certificate, canonical_interview,
+                event_type, user_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
     $stmt = $conn->prepare($sql);
     $stmt->bind_param(
-        "ssssssssssssssssss",
+        "ssssssssssssssssssi",
         $child_first, $child_middle, $child_last, $child_birth_date,
         $father_first, $father_middle, $father_last,
         $mother_first, $mother_middle, $mother_last,
         $birth_certificate, $marriage_certificate_of_parents, $baptismal_seminar_certificate,
-        $sponsor_list, $valid_ids, $barangay_certificate, $canonical_interview, $event_type
+        $sponsor_list, $valid_ids, $barangay_certificate, $canonical_interview,
+        $event_type, $user_id
     );
-    
+
     if ($stmt->execute()) {
         echo "<script>alert('Baptismal request submitted successfully!')</script>";
     } else {
-        $submissionMessage = "Error: " . $stmt->error;
+        echo "<script>alert('Error: " . $stmt->error . "');</script>";
     }
-    
+
     $stmt->close();
     $conn->close();
 } else {
-    $submissionMessage = "Database connection failed.";
+    echo "<script>alert('Database connection failed.');</script>";
 }
+?>

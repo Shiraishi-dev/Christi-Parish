@@ -1,6 +1,36 @@
 <?php
 include('config.php'); // DB connection
 
+// Start session safely
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Check if user is logged in
+if (!isset($_SESSION['username'])) {
+    echo "<script>window.open('login.php','_self')</script>";
+    exit();
+}
+
+// Fetch the username from session
+$username = $_SESSION['username'];
+
+// Get the user_id from the user table
+$user_id = null;
+$userQuery = $conn->prepare("SELECT user_id FROM user WHERE username = ?");
+$userQuery->bind_param("s", $username);
+$userQuery->execute();
+$userResult = $userQuery->get_result();
+if ($userRow = $userResult->fetch_assoc()) {
+    $user_id = $userRow['user_id'];
+}
+$userQuery->close();
+
+// If user_id is still null, stop the script
+if (!$user_id) {
+    die("User not found.");
+}
+
 function uploadFile($field) {
     if (isset($_FILES[$field]) && $_FILES[$field]['error'] === 0) {
         $targetDir = "uploads/";
@@ -33,15 +63,15 @@ $valid_id             = uploadFile("valid_id");
 // Insert into database
 if ($conn) {
     $sql = "INSERT INTO burial_requirements (
-                deceased_name, date_of_death, place_of_death,
+                user_id, deceased_name, date_of_death, place_of_death,
                 date_of_burial, funeral_home,
                 death_certificate, barangay_clearance, valid_id, event_type
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     $stmt = $conn->prepare($sql);
     $stmt->bind_param(
-        "sssssssss",
-        $deceased_name, $date_of_death, $place_of_death,
+        "isssssssss",
+        $user_id, $deceased_name, $date_of_death, $place_of_death,
         $date_of_burial, $funeral_home,
         $death_certificate, $barangay_clearance, $valid_id, $event_type
     );
