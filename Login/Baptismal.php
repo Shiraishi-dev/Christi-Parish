@@ -1,21 +1,29 @@
 <?php
 include('config.php');
-session_start(); // Start the session
+session_start();
 
-// Check if the user is logged in
 if (!isset($_SESSION['username'])) {
-    // If not, redirect them to the login page
-    echo "<script>window.open(.php','_self')</script>";
-    exit(); // Ensure the rest of the page doesn't load
+    echo "<script>window.open('login.php','_self')</script>";
+    exit();
 }
 
-// Get the logged-in username
 $username = $_SESSION['username'];
-
 $submissionMessage = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    include('upload_baptismal_files.php'); // Make sure this file handles the logic correctly
+    include('upload_baptismal_files.php');
+}
+
+// Fetch approved baptism dates from database
+$approvedDates = [];
+
+$query = "SELECT date_of_baptism FROM baptismal_bookings WHERE status = 'approved'";
+$result = mysqli_query($conn, $query);
+
+if ($result && mysqli_num_rows($result) > 0) {
+    while ($row = mysqli_fetch_assoc($result)) {
+        $approvedDates[] = $row['date_of_baptism'];
+    }
 }
 ?>
 
@@ -25,8 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8" />
     <title>Baptismal Form</title>
     <link rel="stylesheet" href="styles/Wedding.css" />
+
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
     <style>
-        /* Additional styling to help layout if not present in Wedding.css */
         .container {
             max-width: 900px;
             margin: auto;
@@ -68,7 +80,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 15px;
             text-decoration: none;
         }
-
     </style>
 </head>
 <body>
@@ -78,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container">
         <form method="POST" enctype="multipart/form-data">
 
-            <!-- Attachments -->
+            <!-- Attachment Section -->
             <div class="attachment-section">
                 <h2>Attachment Requirements</h2>
                 <div class="attachments">
@@ -92,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
 
-            <!-- Form -->
+            <!-- Form Section -->
             <div class="form-section">
                 <h2>Fill up this form</h2>
 
@@ -104,25 +115,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="text" name="child_last_name" placeholder="Child's Last Name" required>
                 </div>
                 <div class="form-row">
-                    <input type="date" name="child_birth_date" required>
+                    <input type="text" id="child_birth_date" name="child_birth_date" required readonly placeholder="Select Child's Birth Date">
+                </div>
+
+                <!-- Baptism Date -->
+                <h3>Date of Baptism</h3>
+                <div class="form-row">
+                    <input type="text" id="date_of_baptism" name="date_of_baptism" required readonly placeholder="Select Baptism Date">
                 </div>
 
                 <!-- Father's Info -->
                 <h3>Father's Information</h3>
                 <div class="form-row">
                    <input type="text" name="father_first_name" placeholder="Father's First Name" required>
-                   <input type="text" name="father_middle_name" placeholder="Father's First Name" required>
-                   <input type="text" name="father_last_name" placeholder="Father's First Name" required>
+                   <input type="text" name="father_middle_name" placeholder="Father's Middle Name" required>
+                   <input type="text" name="father_last_name" placeholder="Father's Last Name" required>
                 </div>
+
+                <!-- Mother's Info -->
                 <h3>Mother's Information</h3>
                 <div class="form-row">
-                   <input type="text" name="mother_first_name" placeholder="Father's First Name" required>
-                   <input type="text" name="mother_middle_name" placeholder="Father's First Name" required>
-                   <input type="text" name="mother_last_name" placeholder="Father's First Name" required>
+                   <input type="text" name="mother_first_name" placeholder="Mother's First Name" required>
+                   <input type="text" name="mother_middle_name" placeholder="Mother's Middle Name" required>
+                   <input type="text" name="mother_last_name" placeholder="Mother's Last Name" required>
                 </div>
+
                 <button type="submit" class="submit-btn">SUBMIT</button>
+            </div>
+        </form>
     </div>
+
+    <!-- Flatpickr Init -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Baptism Date Picker
+            flatpickr("#date_of_baptism", {
+                dateFormat: "Y-m-d",
+                disable: [
+                    function(date) {
+                        return (date.getDay() === 0 || date.getDay() === 6); // Disable weekends
+                    },
+                    <?php
+                    foreach ($approvedDates as $date) {
+                        echo '"' . $date . '",';
+                    }
+                    ?>
+                ],
+                minDate: "today"
+            });
+
+            // Child Birth Date Picker
+            flatpickr("#child_birth_date", {
+                dateFormat: "Y-m-d",
+                maxDate: "today"
+            });
+        });
+    </script>
 </body>
 </html>
-                   
-                    

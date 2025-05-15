@@ -17,7 +17,7 @@ if ($conn) {
         $stmt->execute();
         $stmt->close();
 
-        echo "<script>alert('Application confirmed successfully!'); window.location.href = 'baptismal.admin.php';</script>";
+        echo "<script>alert('Application confirmed successfully!'); window.location.href = 'burial.admin.php';</script>";
         exit;
     }
 
@@ -28,7 +28,7 @@ if ($conn) {
         $stmt->execute();
         $stmt->close();
 
-        echo "<script>alert('Application deleted successfully.'); window.location.href = 'baptismal.admin.php';</script>";
+        echo "<script>alert('Application deleted successfully.'); window.location.href = 'burial.admin.php';</script>";
         exit;
     }
 

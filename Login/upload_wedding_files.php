@@ -58,6 +58,7 @@ $husband_first = $_POST['husband_first_name'];
 $husband_middle = $_POST['husband_middle_name'];
 $husband_last = $_POST['husband_last_name'];
 $husband_age = $_POST['husband_age'];
+$date_of_wedding = $_POST['date_of_wedding'];
 
 // Upload files
 $marriage_license = uploadFile("marriage_license");
@@ -80,17 +81,17 @@ if ($conn) {
         husband_first_name, husband_middle_name, husband_last_name, husband_age,
         marriage_license, application_form, birth_certificates, certificate_of_no_marriage,
         community_tax_certificate, parental_consent_advice, valid_ids,
-        barangay_certificate, canonical_interview, event_type
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        barangay_certificate, canonical_interview, event_type, date_of_wedding
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("isssissssssssssssss",
+    $stmt->bind_param("isssisssssssssssssss",
         $user_id,
         $wife_first, $wife_middle, $wife_last, $wife_age,
         $husband_first, $husband_middle, $husband_last, $husband_age,
         $marriage_license, $application_form, $birth_certificates, $certificate_of_no_marriage,
         $community_tax_certificate, $parental_consent_advice, $valid_ids,
-        $barangay_certificate, $canonical_interview, $event_type
+        $barangay_certificate, $canonical_interview, $event_type, $date_of_wedding
     );
 
     global $submissionMessage;

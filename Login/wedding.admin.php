@@ -15,7 +15,7 @@ $results = [];
 
 
 if ($conn) {
-    $sql = "SELECT id, wife_first_name, wife_last_name, husband_first_name, husband_last_name FROM wedding_applications WHERE event_type='wedding'";
+    $sql = "SELECT id, wife_first_name, wife_last_name, husband_first_name, husband_last_name FROM wedding_applications WHERE event_type='wedding' AND status='Pending'";
     $query = $conn->query($sql);
 
     if ($query && $query->num_rows > 0) {

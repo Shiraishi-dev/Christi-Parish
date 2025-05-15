@@ -1,13 +1,13 @@
 <?php
 include('config.php');
-session_start(); // Start the session
+session_start();
 
 if (!isset($_SESSION['username'])) {
     echo "<script>window.open('login.php','_self')</script>";
     exit();
 }
 
-$username = $_SESSION['username']; 
+$username = $_SESSION['username'];
 $weddingResults = $burialResults = $baptismalResults = [];
 
 // Fetch user_id using username
@@ -50,7 +50,7 @@ while ($row = $result2->fetch_assoc()) {
 }
 $stmt2->close();
 
-// Baptismal Bookings (fixed: added date_of_baptism)
+// Baptismal Bookings
 $sql3 = "SELECT id, child_first_name, child_last_name, father_first_name, father_last_name, mother_first_name, mother_last_name
          FROM baptismal_bookings 
          WHERE user_id = ? AND status = 'Pending'";
@@ -70,15 +70,30 @@ $conn->close();
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Pending Requests</title>  
+  <title>User Pending Requests</title>
   <link rel="stylesheet" href="styles/test-admin.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=pending_actions" />
+  <style>
+    .edit-btn {
+      display: inline-block;
+      margin-left: 10px;
+      padding: 6px 12px;
+      background-color: #4CAF50;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+    .edit-btn:hover {
+      background-color: #45a049;
+    }
+  </style>
 </head>
 <body>
 
 <aside class="sidebar">
   <div class="side-header">
-    <img src="includes/logo.jpg" alt="logo">
+    <a href="user.php"><img src="includes/logo.jpg" alt="logo"></a>
     <h2 class="title-a">Corpus Christi Parish</h2>
   </div>
 
@@ -113,50 +128,41 @@ $conn->close();
       <div class="request-card">
         <h4><?= htmlspecialchars($row['husband_first_name'] . ' ' . $row['husband_last_name']) ?> & <?= htmlspecialchars($row['wife_first_name'] . ' ' . $row['wife_last_name']) ?></h4>
         <a href="wedding.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
+        <a href="wedding.edit.php?id=<?= $row['id'] ?>" class="edit-btn">Edit</a>
       </div>
     <?php endforeach; ?>
   <?php else: ?>
     <p>No pending wedding applications found.</p>
   <?php endif; ?>
 
-  <!-- Burial Requirements -->
+  <!-- Burial Requests -->
   <h3>Burial Requests</h3>
   <?php if (!empty($burialResults)): ?>
     <?php foreach ($burialResults as $row): ?>
       <div class="request-card">
         <h4><?= htmlspecialchars($row['deceased_name']) ?> - <?= htmlspecialchars($row['date_of_burial']) ?></h4>
-        <a href="burial.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
+        <a href="user.pending.details.burial.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
+        <a href="burial.edit.php?id=<?= $row['id'] ?>" class="edit-btn">Edit</a>
       </div>
     <?php endforeach; ?>
   <?php else: ?>
     <p>No pending burial requests found.</p>
   <?php endif; ?>
 
-  <!-- Baptismal Bookings -->
+  <!-- Baptismal Requests -->
   <h3>Baptismal Requests</h3>
   <?php if (!empty($baptismalResults)): ?>
     <?php foreach ($baptismalResults as $row): ?>
       <div class="request-card">
         <h4><?= htmlspecialchars($row['child_first_name'] . ' ' . $row['child_last_name']) ?></h4>
         <a href="baptismal.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
+        <a href="baptismal.edit.php?id=<?= $row['id'] ?>" class="edit-btn">Edit</a>
       </div>
     <?php endforeach; ?>
   <?php else: ?>
     <p>No pending baptismal requests found.</p>
   <?php endif; ?>
 </div>
-
-<!-- Optional debug output -->
-<?php
-// Uncomment to test data output
-/*
-echo "<pre>";
-print_r($weddingResults);
-print_r($burialResults);
-print_r($baptismalResults);
-echo "</pre>";
-*/
-?>
 
 </body>
 </html>

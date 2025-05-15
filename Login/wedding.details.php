@@ -17,7 +17,7 @@ if ($conn) {
         $stmt->execute();
         $stmt->close();
 
-        echo "<script>alert('Application confirmed successfully!'); window.location.href = 'baptismal.admin.php';</script>";
+        echo "<script>alert('Application confirmed successfully!'); window.location.href = 'wedding.admin.php';</script>";
         exit;
     }
 

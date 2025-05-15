@@ -1,68 +1,60 @@
+<?php
+include('config.php');
+
+// Handle form submission
+$errors = [];
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $chosen_date = $_POST['date_of_burial'];
+
+    // Check if it's weekend
+    $dayOfWeek = date('w', strtotime($chosen_date)); // 0 = Sunday, 6 = Saturday
+    if ($dayOfWeek == 0 || $dayOfWeek == 6) {
+        $errors[] = "Weekends are not allowed.";
+    }
+
+    // Check if date is already approved
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM burial_requirements WHERE date_of_burial = ? AND status = 'approved'");
+    $stmt->bind_param("s", $chosen_date);
+    $stmt->execute();
+    $stmt->bind_result($count);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($count > 0) {
+        $errors[] = "This date is already booked.";
+    }
+
+    if (empty($errors)) {
+        // Proceed to store the burial request
+        echo "<p style='color: green;'>Date accepted! Proceed to save the data.</p>";
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Wedding Date Picker</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 30px;
-    }
-
-    .date-label {
-      font-size: 18px;
-      margin-bottom: 10px;
-    }
-
-    input {
-      font-size: 16px;
-      padding: 8px;
-      width: 200px;
-    }
-
-    /* Red styling for disabled (booked or weekend) days */
-    .flatpickr-day.disabled {
-      background-color: #f8d7da !important;
-      color: #721c24 !important;
-      border-color: #f5c6cb !important;
-      cursor: not-allowed;
-    }
-  </style>
+  <title>Burial Date Picker</title>
 </head>
 <body>
+  <h2>Choose a Burial Date</h2>
 
-  <div>
-    <label for="wedding_date" class="date-label">Choose a Wedding Date:</label><br>
-    <input type="text" id="wedding_date" name="wedding_date" required>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script>
-    const approvedDates = [
-      "2025-05-15",
-      "2025-05-20",
-      "2025-06-01"
-    ];
-
-    flatpickr("#wedding_date", {
-      dateFormat: "Y-m-d",
-      minDate: "today",
-      disable: [
-        function(date) {
-          // Disable Saturdays (6) and Sundays (0)
-          return (date.getDay() === 0 || date.getDay() === 6);
-        },
-        ...approvedDates
-      ],
-      onDayCreate: function(dObj, dStr, fp, dayElem) {
-        const date = dayElem.dateObj.toISOString().split("T")[0];
-        if (approvedDates.includes(date) || dayElem.dateObj.getDay() === 0 || dayElem.dateObj.getDay() === 6) {
-          dayElem.title = "Not available";
-        }
+  <?php
+  if (!empty($errors)) {
+      echo "<ul style='color:red;'>";
+      foreach ($errors as $error) {
+          echo "<li>$error</li>";
       }
-    });
-  </script>
+      echo "</ul>";
+  }
+  ?>
 
+  <form method="post">
+    <label for="date_of_burial">Burial Date:</label><br>
+    <input type="date" id="date_of_burial" name="date_of_burial" min="<?php echo date('Y-m-d'); ?>" required>
+    <br><br>
+    <button type="submit">Submit</button>
+  </form>
 </body>
 </html>
