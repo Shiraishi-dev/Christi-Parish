@@ -101,6 +101,7 @@ $conn->close();
     <h4><span>Book Request</span></h4>
     <li><a href="pending.book.user.php">Pending Bookings</a></li>
     <li><a href="approved.book.user.php">Approved Bookings</a></li>
+    <li><a href="decline.book.user.php">Declined Bookings</a></li>
     <h4><span>Menu</span></h4>
     <li><a href="index.php">Logout</a></li>
   </ul>
@@ -127,7 +128,7 @@ $conn->close();
     <?php foreach ($weddingResults as $row): ?>
       <div class="request-card">
         <h4><?= htmlspecialchars($row['husband_first_name'] . ' ' . $row['husband_last_name']) ?> & <?= htmlspecialchars($row['wife_first_name'] . ' ' . $row['wife_last_name']) ?></h4>
-        <a href="wedding.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
+        <a href="wedding.details.user.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
         <a href="wedding.edit.php?id=<?= $row['id'] ?>" class="edit-btn">Edit</a>
       </div>
     <?php endforeach; ?>

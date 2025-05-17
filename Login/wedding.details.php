@@ -12,23 +12,44 @@ $data = null;
 if ($conn) {
     // Handle confirm action
     if (isset($_POST['confirm'])) {
-        $stmt = $conn->prepare("UPDATE wedding_applications SET status = 'approved' WHERE id = ?");
+        // Fetch the requested wedding date for this application
+        $stmt = $conn->prepare("SELECT wedding_date FROM wedding_applications WHERE id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
+        $result = $stmt->get_result();
+        $application = $result->fetch_assoc();
+        $weddingDate = $application['wedding_date']; // Requested wedding date
         $stmt->close();
 
-        echo "<script>alert('Application confirmed successfully!'); window.location.href = 'wedding.admin.php';</script>";
+        // Check if the requested date is already booked
+        $stmt = $conn->prepare("SELECT id FROM wedding_applications WHERE wedding_date = ? AND status = 'approved'");
+        $stmt->bind_param("s", $weddingDate);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            // The date is already booked
+            echo "<script>alert('This date has already been booked. Please select a different date.'); window.location.href = 'wedding.admin.php';</script>";
+        } else {
+            // No conflict, proceed with confirming the application
+            $stmt = $conn->prepare("UPDATE wedding_applications SET status = 'approved' WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            $stmt->close();
+
+            echo "<script>alert('Application confirmed successfully!'); window.location.href = 'wedding.admin.php';</script>";
+        }
         exit;
     }
 
-    // Handle delete action
-    if (isset($_POST['delete'])) {
-        $stmt = $conn->prepare("DELETE FROM wedding_applications WHERE id = ?");
+    // Handle decline action (changed from delete)
+    if (isset($_POST['decline'])) {
+        $stmt = $conn->prepare("UPDATE wedding_applications SET status = 'declined' WHERE id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         $stmt->close();
 
-        echo "<script>alert('Application deleted successfully.'); window.location.href = 'baptismal.admin.php';</script>";
+        echo "<script>alert('Application declined successfully.'); window.location.href = 'wedding.admin.php';</script>";
         exit;
     }
 
@@ -142,7 +163,7 @@ function renderFileField($label, $path) {
   <div class="button-container">
     <form method="post" style="display:inline;">
       <button class="submit-button" type="submit" name="confirm">Confirm</button>
-      <button class="delete-button" type="submit" name="delete" onclick="return confirm('Are you sure you want to delete this application?');">Delete</button>
+      <button class="delete-button" type="submit" name="decline" onclick="return confirm('Are you sure you want to decline this application?');">Decline</button>
     </form>
   </div>
 

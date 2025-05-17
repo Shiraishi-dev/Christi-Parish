@@ -44,12 +44,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h2>Attachment Requirements</h2>
                 <div class="attachments">
                     <label>Marriage License<br /><input type="file" name="marriage_license" accept=".pdf,.jpg,.png" required /></label>
-                    <label>Application Form<br /><input type="file" name="application_form" accept=".pdf,.jpg,.png" required /></label>
+                    <label>Application Form (Marriage)<br /><input type="file" name="application_form" accept=".pdf,.jpg,.png" required /></label>
                     <label>Birth Certificates<br /><input type="file" name="birth_certificates" accept=".pdf,.jpg,.png" required /></label>
                     <label>Certificate of No Marriage<br /><input type="file" name="certificate_of_no_marriage" accept=".pdf,.jpg,.png" required /></label>
                     <label>Community Tax Certificate<br /><input type="file" name="community_tax_certificate" accept=".pdf,.jpg,.png" required /></label>
-                    <label>Parental Consent/Advice<br /><input type="file" name="parental_consent_advice" accept=".pdf,.jpg,.png" /></label>
-                    <label>Valid IDs<br /><input type="file" name="valid_ids" accept=".pdf,.jpg,.png" required /></label>
+                    <label>Parental Consent/Advice (Groom) <br><input type="file" name="parental_consent_advice_groom" accept=".pdf,.jpg,.png" /></label>
+                    <label>Parental Consent/Advice (Bride) <br><input type="file" name="parental_consent_advice_bride" accept=".pdf,.jpg,.png" /></label>
+                    <label>Valid IDs (Groom)<br /><input type="file" name="valid_ids_groom" accept=".pdf,.jpg,.png" required /></label>
+                    <label>Valid IDs (Bride)<br /><input type="file" name="valid_ids_bride" accept=".pdf,.jpg,.png" required /></label>
                     <label>Barangay Certificate<br /><input type="file" name="barangay_certificate" accept=".pdf,.jpg,.png" required /></label>
                     <label>Canonical Interview<br /><input type="file" name="canonical_interview" accept=".pdf,.jpg,.png" required /></label>
                 </div>

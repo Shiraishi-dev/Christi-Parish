@@ -66,31 +66,37 @@ $application_form = uploadFile("application_form");
 $birth_certificates = uploadFile("birth_certificates");
 $certificate_of_no_marriage = uploadFile("certificate_of_no_marriage");
 $community_tax_certificate = uploadFile("community_tax_certificate");
-$parental_consent_advice = uploadFile("parental_consent_advice");
-$valid_ids = uploadFile("valid_ids");
+$parental_consent_advice_groom = uploadFile("parental_consent_advice_groom");
+$parental_consent_advice_bride = uploadFile("parental_consent_advice_bride");
+$valid_ids_groom = uploadFile("valid_ids_groom");
+$valid_ids_bride = uploadFile("valid_ids_bride");
 $barangay_certificate = uploadFile("barangay_certificate");
 $canonical_interview = uploadFile("canonical_interview");
 
 $event_type = "Wedding"; 
 
 // Save to database
+// Save to database
 if ($conn) {
+    // Using backticks around column names that might have special characters like dashes.
     $sql = "INSERT INTO wedding_applications (
         user_id,
         wife_first_name, wife_middle_name, wife_last_name, wife_age,
         husband_first_name, husband_middle_name, husband_last_name, husband_age,
         marriage_license, application_form, birth_certificates, certificate_of_no_marriage,
-        community_tax_certificate, parental_consent_advice, valid_ids,
+        community_tax_certificate, parental_consent_advice_groom, parental_consent_advice_bride, valid_ids_groom, valid_ids_bride,
         barangay_certificate, canonical_interview, event_type, date_of_wedding
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+    // Modify bind_param to properly reflect data types
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("isssisssssssssssssss",
+    $stmt->bind_param("isssisssssssssssssssss", // Adjusted the number of parameters
         $user_id,
         $wife_first, $wife_middle, $wife_last, $wife_age,
         $husband_first, $husband_middle, $husband_last, $husband_age,
         $marriage_license, $application_form, $birth_certificates, $certificate_of_no_marriage,
-        $community_tax_certificate, $parental_consent_advice, $valid_ids,
+        $community_tax_certificate, $parental_consent_advice_groom, $parental_consent_advice_bride, 
+        $valid_ids_groom, $valid_ids_bride,
         $barangay_certificate, $canonical_interview, $event_type, $date_of_wedding
     );
 
@@ -107,4 +113,5 @@ if ($conn) {
 } else {
     $submissionMessage = "Database connection failed.";
 }
+
 ?>

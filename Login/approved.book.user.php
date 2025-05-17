@@ -86,6 +86,7 @@ $conn->close();
     <h4><span>Book Request</span></h4>
     <li><a href="pending.book.user.php">Pending Bookings</a></li>
     <li><a href="approved.book.user.php">Approved Bookings</a></li>
+    <li><a href="decline.book.user.php">Declined Bookings</a></li>
     <h4><span>Menu</span></h4>
     <li><a href="index.php">Logout</a></li>
   </ul>
@@ -104,15 +105,15 @@ $conn->close();
 <div class="top1"></div>
 
 <div class="client-requests">
-  <h2>Your Pending Requests</h2>
+  <h2>Your Approved Requests</h2>
 
   <!-- Wedding Applications -->
   <h3>Wedding Applications</h3>
   <?php if (!empty($weddingResults)): ?>
     <?php foreach ($weddingResults as $row): ?>
       <div class="request-card">
-        <h4><?= htmlspecialchars($row['husband_first_name'] . ' ' . $row['husband_last_name']) ?> & <?= htmlspecialchars($row['wife_first_name'] . ' ' . $row['wife_last_name']) ?></h4>
-        <a href="wedding.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
+        <h4><?= htmlspecialchars($row['husband_first_name'] . ' ' . $row['husband_last_name']) ?> & <?= htmlspecialchars($row['wife_first_name'] . ' ' . $row['wife_last_name']) ?></h4> <br>
+        <a href="wedding.details.user.approved.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
       </div>
     <?php endforeach; ?>
   <?php else: ?>
@@ -124,7 +125,7 @@ $conn->close();
   <?php if (!empty($burialResults)): ?>
     <?php foreach ($burialResults as $row): ?>
       <div class="request-card">
-        <h4><?= htmlspecialchars($row['deceased_name']) ?> - <?= htmlspecialchars($row['date_of_burial']) ?></h4>
+        <h4><?= htmlspecialchars($row['deceased_name']) ?> - <?= htmlspecialchars($row['date_of_burial']) ?></h4> <br>
         <a href="burial.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
       </div>
     <?php endforeach; ?>
@@ -137,7 +138,7 @@ $conn->close();
   <?php if (!empty($baptismalResults)): ?>
     <?php foreach ($baptismalResults as $row): ?>
       <div class="request-card">
-        <h4><?= htmlspecialchars($row['child_first_name'] . ' ' . $row['child_last_name']) ?></h4>
+        <h4><?= htmlspecialchars($row['child_first_name'] . ' ' . $row['child_last_name']) ?></h4> <br>
         <a href="baptismal.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
       </div>
     <?php endforeach; ?>

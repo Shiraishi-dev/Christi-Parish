@@ -119,10 +119,28 @@ if ($result && mysqli_num_rows($result) > 0) {
                 </div>
 
                 <!-- Baptism Date -->
-                <h3>Date of Baptism</h3>
-                <div class="form-row">
-                    <input type="text" id="date_of_baptism" name="date_of_baptism" required readonly placeholder="Select Baptism Date">
-                </div>
+                <!-- Baptism Date -->
+<h3>Date of Baptism</h3>
+<div class="form-row">
+    <input type="text" id="date_of_baptism" name="date_of_baptism" required readonly placeholder="Select Baptism Date">
+</div>
+
+<!-- Time Picker -->
+<h3>Time of Baptism</h3>
+<div class="form-row">
+    <select name="time_of_baptism" id="time_of_baptism" required>
+        <option value="">Select Time</option>
+        <option value="09:00">9:00 AM</option>
+        <option value="09:30">9:30 AM</option>
+        <option value="10:00">10:00 AM</option>
+        <option value="13:00">1:00 PM</option>
+        <option value="13:30">1:30 PM</option>
+        <option value="14:00">2:00 PM</option>
+        <option value="14:30">2:30 PM</option>
+        <option value="15:00">3:00 PM</option>
+    </select>
+</div>
+
 
                 <!-- Father's Info -->
                 <h3>Father's Information</h3>

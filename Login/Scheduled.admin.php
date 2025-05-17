@@ -15,7 +15,7 @@ $burials = [];
 
 if ($conn) {
     // Wedding bookings
-    $sql = "SELECT id, wife_first_name, wife_last_name, husband_first_name, husband_last_name 
+    $sql = "SELECT id, wife_first_name, wife_last_name, husband_first_name, husband_last_name, date_of_wedding
             FROM wedding_applications 
             WHERE event_type='wedding' AND status='Approved'";
     $result = $conn->query($sql);
@@ -26,7 +26,7 @@ if ($conn) {
     }
 
     // Baptismal bookings
-    $sql = "SELECT id, child_first_name, child_last_name, father_first_name, mother_first_name 
+    $sql = "SELECT id, child_first_name, child_last_name, father_first_name, mother_first_name, date_of_baptism
             FROM baptismal_bookings 
             WHERE event_type='baptism' AND status='Approved'";
     $result = $conn->query($sql);
@@ -76,6 +76,8 @@ if ($conn) {
     <li><a href="burial.admin.php"><span class="material-symbols-outlined">concierge</span>Burial</a></li>
     <h4><span>Menu</span></h4>
     <li><a href="Scheduled.admin.php"><span class="material-symbols-outlined">event</span>Events Schedule</a></li>
+    <li><a href="Scheduled.admin.php"><span class="material-symbols-outlined">chronic</span>Ongoing</a></li>
+    <li><a href="Scheduled.admin.php"><span class="material-symbols-outlined">folder_match</span>Archive Records</a></li>
     <li><a href="index.php"><span class="material-symbols-outlined">logout</span>Logout</a></li>
   </ul>
 
@@ -102,7 +104,7 @@ if ($conn) {
   <?php if (!empty($weddings)): ?>
     <?php foreach ($weddings as $row): ?>
       <div class="request-card">
-        <h4><?= htmlspecialchars($row['husband_first_name'] . ' ' . $row['husband_last_name']) ?> & <?= htmlspecialchars($row['wife_first_name'] . ' ' . $row['wife_last_name']) ?></h4>
+        <h4>Groom: <?= htmlspecialchars($row['husband_first_name'] . ' ' . $row['husband_last_name']) ?> <br> Bride: <?= htmlspecialchars($row['wife_first_name'] . ' ' . $row['wife_last_name']) ?>  <br> Date of the Wedding Ceremony: <?= htmlspecialchars($row['date_of_wedding']) ?></h4> <br>
         <a href="wedding.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
       </div>
     <?php endforeach; ?>
@@ -115,8 +117,9 @@ if ($conn) {
   <?php if (!empty($baptisms)): ?>
     <?php foreach ($baptisms as $row): ?>
       <div class="request-card">
-        <h4><?= htmlspecialchars($row['child_first_name'] . ' ' . $row['child_last_name']) ?></h4>
+        <h4> Child Name: <?= htmlspecialchars($row['child_first_name'] . ' ' . $row['child_last_name']) ?></h4>
         <p>Parents: <?= htmlspecialchars($row['father_first_name']) ?> & <?= htmlspecialchars($row['mother_first_name']) ?></p>
+        <h4> Date of Baptism: <?= htmlspecialchars($row['date_of_baptism']) ?></h4> <br>
         <a href="baptism.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
       </div>
     <?php endforeach; ?>
@@ -131,7 +134,7 @@ if ($conn) {
       <div class="request-card">
         <h4><?= htmlspecialchars($row['deceased_name']) ?></h4>
         <p>Date of Death: <?= htmlspecialchars($row['date_of_death']) ?></p>
-        <p>Burial Date: <?= htmlspecialchars($row['date_of_burial']) ?></p>
+        <p>Burial Date: <?= htmlspecialchars($row['date_of_burial']) ?></p> <br>
         <a href="burial.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
       </div>
     <?php endforeach; ?>

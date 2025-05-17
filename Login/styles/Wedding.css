@@ -29,8 +29,7 @@ body {
 .container {
   display: flex;
   justify-content: center;
-  gap: 20px;
-  padding: 20px;
+  padding: 200px;
   flex-wrap: wrap;
 }
 
@@ -121,9 +120,9 @@ input[type="date"] {
   color: white;
 }
 .container {
-  max-width: 900px;
+  max-width: 1000px;
   margin: auto;
-  padding: 20px;
+  padding: 100px;
 }
 
 .form-section, .attachment-section {
