@@ -5,22 +5,25 @@ session_start(); // Start the session
 // Login Logic
 if (isset($_POST['login'])) {
     $username = $conn->real_escape_string($_POST['username']);
-    $password = $conn->real_escape_string($_POST['password']);
+    $password = $_POST['password'];
 
-    $sql = "SELECT * FROM user WHERE username='$username' AND password='$password'";
+    $sql = "SELECT * FROM user WHERE username='$username'";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
-        $_SESSION['username'] = $username;
-        $_SESSION['user_type'] = $row['user_type']; // 'admin' or 'user'
-        $_SESSION['user_id'] = $row['user_id'];     // Save user_id in session
+        if (password_verify($password, $row['password'])) {
+            $_SESSION['username'] = $username;
+            $_SESSION['user_type'] = $row['user_type'];
+            $_SESSION['user_id'] = $row['user_id'];
 
-        // Redirect based on user type
-        if ($row['user_type'] === 'admin') {
-            echo "<script>window.open('wedding.admin.php','_self')</script>";
+            if ($row['user_type'] === 'admin') {
+                echo "<script>window.open('wedding.admin.php','_self')</script>";
+            } else {
+                echo "<script>window.open('user.php','_self')</script>";
+            }
         } else {
-            echo "<script>window.open('user.php','_self')</script>";
+            echo "<script>alert('Invalid username or password!')</script>";
         }
     } else {
         echo "<script>alert('Invalid username or password!')</script>";
@@ -33,22 +36,35 @@ if (isset($_POST['register'])) {
     $email = $conn->real_escape_string($_POST['email']);
     $mobile = $conn->real_escape_string($_POST['mobile_number']);
     $username = $conn->real_escape_string($_POST['username']);
-    $password = $conn->real_escape_string($_POST['password']);
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $user_type = "user";
 
-    $user_type = "user"; // Default to user
+    // Check if email or mobile number already exists
+    $check_sql = "SELECT * FROM user WHERE email='$email' OR mobile_number='$mobile'";
+    $check_result = $conn->query($check_sql);
 
-    // Use prepared statement
-    $sql = $conn->prepare("INSERT INTO user (fullname, email, username, password, mobile_number, user_type) VALUES (?, ?, ?, ?, ?, ?)");
-    $sql->bind_param("ssssss", $fullname, $email, $username, $password, $mobile, $user_type);
-
-    if ($sql->execute()) {
-        echo "<script>alert('Successfully Registered!')</script>";
-        echo "<script>window.open('index.php','_self')</script>";
+    if ($check_result->num_rows > 0) {
+        $existing = $check_result->fetch_assoc();
+        if ($existing['email'] == $email) {
+            echo "<script>alert('Email is already registered!')</script>";
+        } elseif ($existing['mobile_number'] == $mobile) {
+            echo "<script>alert('Mobile number is already registered!')</script>";
+        }
     } else {
-        echo "<script>alert('Error: " . $sql->error . "')</script>";
+        // Use prepared statement
+        $sql = $conn->prepare("INSERT INTO user (fullname, email, username, password, mobile_number, user_type) VALUES (?, ?, ?, ?, ?, ?)");
+        $sql->bind_param("ssssss", $fullname, $email, $username, $password, $mobile, $user_type);
+
+        if ($sql->execute()) {
+            echo "<script>alert('Successfully Registered!')</script>";
+            echo "<script>window.open('index.php','_self')</script>";
+        } else {
+            echo "<script>alert('Error: " . $sql->error . "')</script>";
+        }
     }
 }
 ?>
+
 
 
 <!DOCTYPE html>

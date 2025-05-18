@@ -94,6 +94,7 @@
               <p>Son/Daughter Name: <?= htmlspecialchars($row['child_first_name'] . ' ' . $row['child_middle_name']. ' ' . $row['child_last_name']) ?> <br></p>
               <p>Child of: <?= htmlspecialchars($row['father_first_name']) ?> and <?= htmlspecialchars($row['mother_first_name']) ?> <br></p>
               <p>Baptismal Date: <?= htmlspecialchars($row['Book_Date']) ?></p>
+              <p>Start TIme: <?= htmlspecialchars($row['Start_time']) ?></p>
               <br>
             </h3>
             <a href="baptismal.details.php?id=<?= $row['baptismal_bookings_id'] ?>" class="view-more-btn">View More</a>
