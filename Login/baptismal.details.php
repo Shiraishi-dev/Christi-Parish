@@ -123,6 +123,8 @@ function renderFileField($label, $path) {
     <li><strong>Mother Name:</strong> <?= htmlspecialchars($data['mother_first_name'] . ' ' . $data['mother_middle_name'] . ' ' . $data['mother_last_name']) ?></li>
     <li><strong>Event Type:</strong> <?= htmlspecialchars($data['event_type']) ?></li>
     <li><strong>Submitted At:</strong> <?= htmlspecialchars($data['submitted_at']) ?></li>
+    <li><strong>Date of Baptism:</strong> <?= htmlspecialchars($data['date_of_baptism']) ?></li>
+    <li><strong>Time of Baptism:</strong> <?= htmlspecialchars($data['time_of_baptism']) ?></li>
 
     <?php
       renderFileField('Birth Certificate', $data['birth_certificate']);

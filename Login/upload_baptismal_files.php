@@ -1,27 +1,43 @@
 <?php
-include('config.php');
+include('config.php'); // DB connection
+
+// Start session safely
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Check if user is logged in
+if (!isset($_SESSION['username'])) {
+    echo "<script>window.open('login.php','_self')</script>";
+    exit();
+}
+
+$username = $_SESSION['username'];
+
+// Fetch user_id
+$user_id = null;
+$userQuery = $conn->prepare("SELECT user_id FROM user WHERE username = ?");
+$userQuery->bind_param("s", $username);
+$userQuery->execute();
+$result = $userQuery->get_result();
+if ($row = $result->fetch_assoc()) {
+    $user_id = $row['user_id'];
+}
+$userQuery->close();
+
+if (!$user_id) {
+    die("User not found.");
+}
+
+// File upload function
 function uploadFile($field) {
     if (isset($_FILES[$field]) && $_FILES[$field]['error'] === 0) {
         $targetDir = "uploads/";
         if (!file_exists($targetDir)) {
             mkdir($targetDir, 0777, true);
         }
-
-        $uniqueId = uniqid('', true); // More unique than time()
-        $filename = $uniqueId . '_' . basename($_FILES[$field]["name"]);
+        $filename = time() . '_' . basename($_FILES[$field]["name"]);
         $targetFile = $targetDir . $filename;
-        $fileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
-
-        // Allow only specific file types
-        $allowedTypes = ['jpg', 'jpeg', 'png', 'pdf'];
-        if (!in_array($fileType, $allowedTypes)) {
-            return null;
-        }
-
         if (move_uploaded_file($_FILES[$field]["tmp_name"], $targetFile)) {
             return $targetFile;
         }
@@ -29,94 +45,86 @@ function uploadFile($field) {
     return null;
 }
 
-// Ensure user is logged in
-if (!isset($_SESSION['username'])) {
-    echo "<script>alert('User not logged in.'); window.location.href='index.php';</script>";
-    exit();
+// Get form inputs
+$child_first_name      = $_POST['child_first_name'];
+$child_middle_name     = $_POST['child_middle_name'];
+$child_last_name       = $_POST['child_last_name'];
+$child_birth_date      = $_POST['child_birth_date'];
+$date_of_baptism       = $_POST['date_of_baptism'];
+$Start_time            = $_POST['Start_time'];
+
+$father_first_name     = $_POST['father_first_name'];
+$mother_first_name     = $_POST['mother_first_name'];
+$mother_middle_name    = $_POST['mother_middle_name'];
+$mother_last_name      = $_POST['mother_last_name'];
+
+// Upload files
+$birth_certificate               = uploadFile('birth_certificate');
+$marriage_certificate_of_parents = uploadFile('marriage_certificate_of_parents');
+$baptismal_seminar_certificate   = uploadFile('baptismal_seminar_certificate');
+$sponsor_list                    = uploadFile('sponsor_list');
+$valid_ids                       = uploadFile('valid_ids');
+$barangay_certificate            = uploadFile('barangay_certificate');
+$canonical_interview             = uploadFile('canonical_interview');
+
+// Insert into baptismal_bookings table
+$sql = "INSERT INTO baptismal_bookings (
+    user_id, child_first_name, child_middle_name, child_last_name, child_birth_date,
+    father_first_name, mother_first_name, mother_middle_name, mother_last_name,
+    birth_certificate, marriage_certificate_of_parents, baptismal_seminar_certificate, sponsor_list,
+    valid_ids, barangay_certificate, canonical_interview
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+$stmt = $conn->prepare($sql);
+if ($stmt === false) {
+    die("Prepare failed: " . $conn->error);
 }
 
-$username = $_SESSION['username'];
+$stmt->bind_param(
+    "isssssssssssssss",
+    $user_id, $child_first_name, $child_middle_name, $child_last_name, $child_birth_date,
+    $father_first_name, $mother_first_name, $mother_middle_name, $mother_last_name,
+    $birth_certificate, $marriage_certificate_of_parents, $baptismal_seminar_certificate, $sponsor_list,
+    $valid_ids, $barangay_certificate, $canonical_interview
+);
 
-// Fetch user_id
-$userQuery = $conn->prepare("SELECT user_id FROM user WHERE username = ?");
-$userQuery->bind_param("s", $username);
-$userQuery->execute();
-$result = $userQuery->get_result();
-$user = $result->fetch_assoc();
-$userQuery->close();
+if ($stmt->execute()) {
+    $baptismal_booking_id = $conn->insert_id; // Correct variable for later use
 
-if (!$user) {
-    echo "<script>alert('User not found.'); window.location.href='login.php';</script>";
-    exit();
-}
+    // Create corresponding event
+    $description = "Baptismal for $child_first_name $child_last_name on $date_of_baptism";
+    $booking_type = "baptismal";
+    $status = "Pending";
 
-$user_id = $user['user_id'];
+    $eventStmt = $conn->prepare("INSERT INTO event (
+        description, Book_Date, Start_time, baptismal_booking_id, booking_type, status
+    ) VALUES (?, ?, ?, ?, ?, ?)");
 
-// Collect form data
-$child_first        = $_POST['child_first_name'];
-$child_middle       = $_POST['child_middle_name'];
-$child_last         = $_POST['child_last_name'];
-$child_birth_date   = $_POST['child_birth_date'];
-$date_of_baptism    = $_POST['date_of_baptism'];
+    $eventStmt->bind_param("sssiss", $description, $date_of_baptism, $Start_time, $baptismal_booking_id, $booking_type, $status);
 
-$father_first       = $_POST['father_first_name'];
-$father_middle      = $_POST['father_middle_name'];
-$father_last        = $_POST['father_last_name'];
+    if ($eventStmt->execute()) {
+        $event_id = $conn->insert_id;
 
-$mother_first       = $_POST['mother_first_name'];
-$mother_middle      = $_POST['mother_middle_name'];
-$mother_last        = $_POST['mother_last_name'];
+        // Update baptismal_bookings with event_id
+        $updateStmt = $conn->prepare("UPDATE baptismal_bookings SET event_id = ? WHERE baptismal_bookings_id = ?");
+        $updateStmt->bind_param("ii", $event_id, $baptismal_booking_id);
+        $updateStmt->execute();
+        $updateStmt->close();
 
-// Upload attachments
-$birth_certificate                = uploadFile("birth_certificate");
-$marriage_certificate_of_parents = uploadFile("marriage_certificate_of_parents");
-$baptismal_seminar_certificate   = uploadFile("baptismal_seminar_certificate");
-$sponsor_list                    = uploadFile("sponsor_list");
-$valid_ids                       = uploadFile("valid_ids");
-$barangay_certificate            = uploadFile("barangay_certificate");
-$canonical_interview             = uploadFile("canonical_interview");
-
-// Check if all required files were uploaded
-if (!$birth_certificate || !$marriage_certificate_of_parents || !$baptismal_seminar_certificate ||
-    !$sponsor_list || !$valid_ids || !$barangay_certificate || !$canonical_interview) {
-    echo "<script>alert('Please ensure all required files are uploaded successfully.'); window.history.back();</script>";
-    exit();
-}
-
-$event_type = "baptism";
-
-// Insert into database
-if ($conn) {
-    $sql = "INSERT INTO baptismal_bookings (
-                child_first_name, child_middle_name, child_last_name, child_birth_date,
-                father_first_name, father_middle_name, father_last_name,
-                mother_first_name, mother_middle_name, mother_last_name,
-                birth_certificate, marriage_certificate_of_parents, baptismal_seminar_certificate,
-                sponsor_list, valid_ids, barangay_certificate, canonical_interview,
-                event_type, user_id, date_of_baptism, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param(
-        "ssssssssssssssssssis",
-        $child_first, $child_middle, $child_last, $child_birth_date,
-        $father_first, $father_middle, $father_last,
-        $mother_first, $mother_middle, $mother_last,
-        $birth_certificate, $marriage_certificate_of_parents, $baptismal_seminar_certificate,
-        $sponsor_list, $valid_ids, $barangay_certificate, $canonical_interview,
-        $event_type, $user_id, $date_of_baptism
-    );
-
-    if ($stmt->execute()) {
-        echo "<script>alert('Baptismal request submitted successfully!'); window.location.href='index1.php';</script>";
+        echo "<script>
+            alert('Baptismal request and event created successfully!');
+            window.location.href = 'user.php';
+        </script>";
     } else {
-        error_log("Database error on baptism submission: " . $stmt->error);
-        echo "<script>alert('An unexpected error occurred. Please try again later.');</script>";
+        echo "Event creation failed: " . $eventStmt->error;
     }
 
-    $stmt->close();
-    $conn->close();
+    $eventStmt->close();
+
 } else {
-    echo "<script>alert('Database connection failed.');</script>";
+    echo "Baptismal application failed: " . $stmt->error;
 }
+
+$stmt->close();
+$conn->close();
 ?>

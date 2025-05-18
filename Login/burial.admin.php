@@ -2,10 +2,14 @@
 include('config.php'); 
 session_start(); // Start the session
 
-
-if (!isset($_SESSION['username'])) {
-    echo "<script>window.open(.php','_self')</script>";
-    exit(); 
+// Ensure the user is logged in and is an admin
+if (
+    !isset($_SESSION['username']) ||
+    !isset($_SESSION['user_type']) ||
+    $_SESSION['user_type'] !== 'admin'
+) {
+    echo "<script>window.open('index.php','_self')</script>";  // Redirect to login if not admin
+    exit();
 }
 
 $username = $_SESSION['username']; 
@@ -13,15 +17,31 @@ $username = $_SESSION['username'];
 $results = [];
 
 if ($conn) {
-    $sql = "SELECT id, deceased_name, date_of_death, place_of_death,date_of_burial, funeral_home, death_certificate, barangay_clearance, valid_id, created_at FROM burial_requirements WHERE event_type='burial' AND status='Pending'";
-    $query = $conn->query($sql);
+    // Fetch all pending burial requests for admin
+    $sql = "
+        SELECT br.burial_requirements_id, br.deceased_name, br.date_of_death, br.place_of_death, 
+               e.Book_Date, e.Start_time, br.funeral_home, br.death_certificate, br.barangay_clearance, 
+               br.valid_id, br.created_at 
+        FROM burial_requirements br
+        JOIN event e ON br.event_id = e.event_id 
+        WHERE e.booking_type = 'burial' AND e.status = 'Pending'
+    ";
 
-    if ($query && $query->num_rows > 0) {
-        while ($row = $query->fetch_assoc()) {
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        die('Prepare failed: ' . $conn->error);
+    }
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
             $results[] = $row;
         }
     }
 
+    $stmt->close();
     $conn->close();
 }
 ?>
@@ -47,8 +67,8 @@ if ($conn) {
     <ul class="sidebar-links">
       <h4><span>Book Request</span></h4>
       <li><a href="wedding.admin.php"><span class="material-symbols-outlined">concierge</span>Wedding</a></li>
-      <li><a href="baptismal.admin.php" class="active"><span class="material-symbols-outlined">concierge</span>Baptismal</a></li>
-      <li><a href="burial.admin.php"><span class="material-symbols-outlined">concierge</span>Burial</a></li>
+      <li><a href="baptismal.admin.php"><span class="material-symbols-outlined">concierge</span>Baptismal</a></li>
+      <li><a href="burial.admin.php" class="active"><span class="material-symbols-outlined">concierge</span>Burial</a></li>
       <h4><span>Menu</span></h4>
       <li><a href="Scheduled.admin.php"><span class="material-symbols-outlined">event</span>Events Schedule</a></li>
       <li><a href="scheduled.ongoing.baptismal.php"><span class="material-symbols-outlined">chronic</span>Ongoing</a></li>
@@ -77,16 +97,18 @@ if ($conn) {
     <?php if (!empty($results)): ?>
       <?php foreach ($results as $row): ?>
         <div class="request-card">
-          <h3>
-            <?= htmlspecialchars($row['deceased_name']) ?>
-        </h3>
-        <a href="burial.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
-    </div>
-  <?php endforeach; ?>
-<?php else: ?>
-  <p>No baptismal applications found.</p>
-<?php endif; ?>
-
+          <h3><?= htmlspecialchars($row['deceased_name']) ?></h3>
+          <p>Date of Death: <?= htmlspecialchars($row['date_of_death']) ?></p>
+          <p>Place of Death: <?= htmlspecialchars($row['place_of_death']) ?></p>
+          <p>Funeral Home: <?= htmlspecialchars($row['funeral_home']) ?></p>
+          <p>Book Date: <?= htmlspecialchars($row['Book_Date']) ?></p>
+          <p>Start Time: <?= htmlspecialchars($row['Start_time']) ?></p> <br>
+          <a href="burial.details.php?id=<?= $row['burial_requirements_id'] ?>" class="view-more-btn">View More</a>
+        </div>
+      <?php endforeach; ?>
+    <?php else: ?>
+      <p>No burial requests found.</p>
+    <?php endif; ?>
   </div>
 
 </body>

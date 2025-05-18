@@ -2,20 +2,38 @@
 include('config.php');
 session_start(); // Start the session
 
-
-if (!isset($_SESSION['username'])) {
-    echo "<script>window.open(.php','_self')</script>";
-    exit(); 
+// Ensure the user is logged in
+if (
+    !isset($_SESSION['username']) ||
+    !isset($_SESSION['user_id']) ||
+    !isset($_SESSION['user_type']) || 
+    $_SESSION['user_type'] !== 'admin') {
+    echo "<script>window.open('index.php','_self')</script>";  // Redirect to login page if not logged in as admin
+    exit();
 }
 
-
 $username = $_SESSION['username']; 
-
 $results = [];
 
-
+// Fetch wedding applications and join with event table where booking_type is 'wedding' and status is 'Pending'
 if ($conn) {
-    $sql = "SELECT id, wife_first_name, wife_last_name, husband_first_name, husband_last_name FROM wedding_applications WHERE event_type='wedding' AND status='Pending'";
+    // Corrected: assuming primary key is named `id` in wedding_applications
+    $sql = "
+        SELECT 
+            wa.wedding_applications_id, 
+            wa.wife_first_name, 
+            wa.wife_middle_name, 
+            wa.wife_last_name, 
+            wa.husband_first_name, 
+            wa.husband_middle_name,
+            wa.husband_last_name,
+            e.Book_Date, 
+            e.Start_time
+        FROM wedding_applications wa
+        JOIN event e ON wa.event_id = e.event_id
+        WHERE e.booking_type = 'wedding' AND e.status = 'Pending'
+    ";
+
     $query = $conn->query($sql);
 
     if ($query && $query->num_rows > 0) {
@@ -27,9 +45,6 @@ if ($conn) {
     $conn->close();
 }
 ?>
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -56,7 +71,7 @@ if ($conn) {
       <li><a href="burial.admin.php"><span class="material-symbols-outlined">concierge</span>Burial</a></li>
       <h4><span>Menu</span></h4>
       <li><a href="Scheduled.admin.php"><span class="material-symbols-outlined">event</span>Events Schedule</a></li>
-     <li><a href="scheduled.ongoing.baptismal.php"><span class="material-symbols-outlined">chronic</span>Ongoing</a></li>
+      <li><a href="scheduled.ongoing.baptismal.php"><span class="material-symbols-outlined">chronic</span>Ongoing</a></li>
       <li><a href="Scheduled.admin.php"><span class="material-symbols-outlined">folder_match</span>Archive Records</a></li>
       <li><a href="index.php"><span class="material-symbols-outlined">logout</span>Logout</a></li>
     </ul>
@@ -76,28 +91,23 @@ if ($conn) {
   <div class="top1"></div>
 
   <!-- Main Content -->
-
   <div class="client-requests">
-  <h2>Wedding Book Request List</h2>
+    <h2>Wedding Book Request List</h2>
 
-  <?php if (!empty($results)): ?>
-    <?php foreach ($results as $row): ?>
-      <div class="request-card">
-        <h3>
-          <?php
-            echo htmlspecialchars($row['husband_first_name'] . ' ' . $row['husband_last_name']) .
-                 ' & ' .
-                 htmlspecialchars($row['wife_first_name'] . ' ' . $row['wife_last_name']);
-          ?>
-        </h3>
-        <a href="wedding.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
-      </div>
-    <?php endforeach; ?>
-  <?php else: ?>
-    <p>No wedding applications found.</p>
-  <?php endif; ?>
-</div>
-
+     <?php if (!empty($results)): ?>
+      <?php foreach ($results as $row): ?>
+        <div class="request-card">
+          <p>Groom: <?= htmlspecialchars($row['husband_first_name']) . ' ' . htmlspecialchars($row['husband_middle_name']) . ' ' . htmlspecialchars($row['husband_last_name']) ?></p>
+          <p>Bride: <?= htmlspecialchars($row['wife_first_name']) . ' ' . htmlspecialchars($row['wife_middle_name']) . ' ' . htmlspecialchars($row['wife_last_name']) ?></p>
+          <p>Book Date: <?= htmlspecialchars($row['Book_Date']) ?></p>
+          <p>Start Time: <?= htmlspecialchars($row['Start_time']) ?></p> <br>
+          <a href="wedding.details.php?id=<?= $row['wedding_applications_id'] ?>" class="view-more-btn">View More</a>
+        </div>
+      <?php endforeach; ?>
+    <?php else: ?>
+      <p>No wedding applications found.</p>
+    <?php endif; ?>
+  </div>
 
 </body>
 </html>

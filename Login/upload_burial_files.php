@@ -50,41 +50,81 @@ function uploadFile($field) {
 $deceased_name   = $_POST['deceased_name'];
 $date_of_death   = $_POST['date_of_death'];
 $place_of_death  = $_POST['place_of_death'];
-$date_of_burial  = $_POST['date_of_burial'];
+$Book_Date       = $_POST['Book_Date'];
 $funeral_home    = $_POST['funeral_home'];
-
-$event_type = "burial";
+$Start_time      = $_POST['Start_time'];
 
 // Upload attachments
 $death_certificate    = uploadFile("death_certificate");
 $barangay_clearance   = uploadFile("barangay_clearance");
 $valid_id             = uploadFile("valid_id");
 
-// Insert into database
+// Insert into burial_requirements table
 if ($conn) {
     $sql = "INSERT INTO burial_requirements (
-                user_id, deceased_name, date_of_death, place_of_death,
-                date_of_burial, funeral_home,
-                death_certificate, barangay_clearance, valid_id, event_type
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    
+        user_id, deceased_name, date_of_death, place_of_death,
+        funeral_home,
+        death_certificate, barangay_clearance, valid_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param(
-        "isssssssss",
-        $user_id, $deceased_name, $date_of_death, $place_of_death,
-        $date_of_burial, $funeral_home,
-        $death_certificate, $barangay_clearance, $valid_id, $event_type
-    );
-    
-    if ($stmt->execute()) {
-        echo "<script>alert('Burial request submitted successfully!')</script>";
-    } else {
-        $submissionMessage = "Error: " . $stmt->error;
+
+    if ($stmt === false) {
+        die("Prepare failed: " . $conn->error);
     }
-    
+
+    $stmt->bind_param(
+        "isssssss",
+        $user_id, $deceased_name, $date_of_death, $place_of_death,
+        $funeral_home,
+        $death_certificate, $barangay_clearance, $valid_id
+    );
+
+    if ($stmt->execute()) {
+        // Get the burial_requirement_id from the last insert
+        $burial_requirement_id = $conn->insert_id;
+
+        $description = "Deceased $deceased_name and $Book_Date";
+        $booking_type = "burial";
+        $status = "Pending";
+
+        // Insert into event table
+        $insertEvent = $conn->prepare("INSERT INTO event (
+            description, Book_Date, Start_time, burial_requirement_id, booking_type, status
+        ) VALUES (?, ?, ?, ?, ?, ?)");
+
+        $insertEvent->bind_param("sssiss", $description, $Book_Date, $Start_time, $burial_requirement_id, $booking_type, $status);
+
+        if ($insertEvent->execute()) {
+            $event_id = $conn->insert_id;
+
+            // Update burial_requirements with event_id
+            $updateRequirement = $conn->prepare("UPDATE burial_requirements SET event_id = ? WHERE burial_requirement_id = ?");
+            $updateRequirement->bind_param("ii", $event_id, $burial_requirement_id);
+
+            if ($updateRequirement->execute()) {
+                echo "<script>
+                    alert('Burial application and event created successfully!');
+                    window.location.href = 'user.php';
+                </script>";
+            } else {
+                echo "Error updating burial_requirements with event_id: " . $updateRequirement->error;
+            }
+
+            $updateRequirement->close();
+        } else {
+            echo "Event insertion error: " . $insertEvent->error;
+        }
+
+        $insertEvent->close();
+    } else {
+        echo "Burial application insertion error: " . $stmt->error;
+    }
+
     $stmt->close();
-    $conn->close();
 } else {
-    $submissionMessage = "Database connection failed.";
+    echo "Database connection error.";
 }
+
+$conn->close();
 ?>

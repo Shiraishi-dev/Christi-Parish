@@ -3,18 +3,20 @@ include('config.php');
 session_start(); // Start the session
 
 // Login Logic
-if(isset($_POST['login'])) {
+if (isset($_POST['login'])) {
     $username = $conn->real_escape_string($_POST['username']);
     $password = $conn->real_escape_string($_POST['password']);
 
     $sql = "SELECT * FROM user WHERE username='$username' AND password='$password'";
     $result = $conn->query($sql);
 
-    if($result->num_rows > 0) {
+    if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
         $_SESSION['username'] = $username;
-        $_SESSION['user_type'] = $row['user_type']; // Save user type
+        $_SESSION['user_type'] = $row['user_type']; // 'admin' or 'user'
+        $_SESSION['user_id'] = $row['user_id'];     // Save user_id in session
 
+        // Redirect based on user type
         if ($row['user_type'] === 'admin') {
             echo "<script>window.open('wedding.admin.php','_self')</script>";
         } else {
@@ -25,22 +27,21 @@ if(isset($_POST['login'])) {
     }
 }
 
-
 // Register Logic
-if(isset($_POST['register'])) {
+if (isset($_POST['register'])) {
     $fullname = $conn->real_escape_string($_POST['fullname']);
     $email = $conn->real_escape_string($_POST['email']);
     $mobile = $conn->real_escape_string($_POST['mobile_number']);
     $username = $conn->real_escape_string($_POST['username']);
     $password = $conn->real_escape_string($_POST['password']);
 
-    $user_type = "user";
+    $user_type = "user"; // Default to user
 
-    // Using prepared statement to avoid SQL injection
-    $sql = $conn->prepare("INSERT INTO user (fullname, email, username, password, mobile_number, user_type) VALUES (?, ?, ?, ?, ?,?)");
+    // Use prepared statement
+    $sql = $conn->prepare("INSERT INTO user (fullname, email, username, password, mobile_number, user_type) VALUES (?, ?, ?, ?, ?, ?)");
     $sql->bind_param("ssssss", $fullname, $email, $username, $password, $mobile, $user_type);
-    
-    if($sql->execute()) {
+
+    if ($sql->execute()) {
         echo "<script>alert('Successfully Registered!')</script>";
         echo "<script>window.open('index.php','_self')</script>";
     } else {
@@ -48,6 +49,7 @@ if(isset($_POST['register'])) {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

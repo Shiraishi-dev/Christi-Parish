@@ -12,12 +12,12 @@ $submissionMessage = '';
 
 // Fetch approved wedding dates from the database
 $approvedDates = [];
-$query = "SELECT date_of_wedding FROM wedding_applications WHERE status = 'approved'";
+$query = "SELECT Book_Date FROM event WHERE booking_type='Wedding' AND status = 'approved'";
 $result = mysqli_query($conn, $query);
 
 if ($result) {
     while ($row = mysqli_fetch_assoc($result)) {
-        $approvedDates[] = $row['date_of_wedding'];
+        $approvedDates[] = $row['Book_Date'];
     }
 }
 
@@ -75,8 +75,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <h3>Wedding Date</h3>
                 <div class="form-row">
-                    <input type="text" id="date_of_wedding" name="date_of_wedding" required readonly placeholder="Select Wedding Date">
+                    <input type="text" id="date_of_wedding" name="Book_Date" required readonly placeholder="Select Wedding Date">
                 </div>
+                <h4>Time of Wedding (Choose between 9:00 AM and 1:00 PM)</h4>
+                <div class="form-row">
+                    <select name="Start_time" id="time_of_wedding" required>
+                        <option value="">Select Time</option>
+                            <option value="09:00">9:00 AM</option>
+                            <option value="13:00">1:00 PM</option>
+                        </select>
+                    </div>
+
+
             </div>
             <button type="submit" class="submit-btn">SUBMIT</button>
         </form>

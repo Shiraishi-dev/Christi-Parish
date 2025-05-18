@@ -13,20 +13,20 @@ $errors = [];
 
 // Fetch approved burial dates
 $approvedDates = [];
-$result = $conn->query("SELECT date_of_burial FROM burial_requirements WHERE status = 'approved'");
+$result = $conn->query("SELECT Book_Date FROM event WHERE status = 'approved'");
 while ($row = $result->fetch_assoc()) {
-    $approvedDates[] = $row['date_of_burial'];
+    $approvedDates[] = $row['Book_Date'];
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $chosen_date = $_POST['date_of_burial'];
+    $chosen_date = $_POST['Book_Date'];
     $dayOfWeek = date('w', strtotime($chosen_date));
 
     if ($dayOfWeek == 0 || $dayOfWeek == 6) {
         $errors[] = "Weekends are not allowed.";
     }
 
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM burial_requirements WHERE date_of_burial = ? AND status = 'approved'");
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM event WHERE Book_Date = ? AND status = 'approved'");
     $stmt->bind_param("s", $chosen_date);
     $stmt->execute();
     $stmt->bind_result($count);
@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Burial Form</title>
     <link rel="stylesheet" href="styles/Wedding.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
 <body>
     <a href="index1.php" class="go-back">GO BACK</a>
@@ -85,31 +86,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span>Deceased Name: </span><br><input type="text" name="deceased_name" placeholder="Full Name of Deceased" required>
                     <span>Date of Death: </span><br><input type="text" id="death_date" name="date_of_death" required>
                     <span>Place of Death: </span><br><input type="text" name="place_of_death" placeholder="Place of Death" required>
-                    <span>Date of Funeral: </span><br><input type="text" id="burial_date" name="date_of_burial" required>
                     <span>Funeral Home: </span><br><input type="text" name="funeral_home" placeholder="Funeral Home Name" required>
+                    <span>Date of Funeral: </span><br><input type="text" id="burial_date" name="Book_Date" required>
+                </div>
+                <h4>Time of Burial</h4>
+                <div class="form-row">
+                    <select name="Start_time" id="time_of_burial" required>
+                        <option value="">Select Time</option>
+                        <option value="09:00">9:00 AM</option>
+                        <option value="13:00">1:00 PM</option>
+                    </select>
                 </div>
                 <button type="submit" class="submit-btn">SUBMIT</button>
             </div>
         </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
 <script>
     const approvedDates = <?= json_encode($approvedDates); ?>;
 
-    // Funeral Date Picker with validation
     flatpickr("#burial_date", {
         minDate: "today",
         dateFormat: "Y-m-d",
         disable: [
             function(date) {
                 const day = date.getDay();
-                const localDate = date.toLocaleDateString('en-CA'); // Ensures YYYY-MM-DD format
-                return (day === 0 || day === 6 || approvedDates.includes(localDate));
+                const formattedDate = flatpickr.formatDate(date, "Y-m-d");
+                return (
+                    day === 0 || // Sunday
+                    day === 6 || // Saturday
+                    approvedDates.includes(formattedDate)
+                );
             }
         ],
         onDayCreate: function(dObj, dStr, fp, dayElem) {
-            const dateStr = dayElem.dateObj.toLocaleDateString('en-CA');
+            const dateStr = flatpickr.formatDate(dayElem.dateObj, "Y-m-d");
             const day = dayElem.dateObj.getDay();
 
             if (day === 0 || day === 6) {
@@ -122,9 +134,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     });
 
-    // Death Date Picker (just styled)
     flatpickr("#death_date", {
         maxDate: "today",
         dateFormat: "Y-m-d"
     });
 </script>
+
+</body>
+</html>

@@ -26,7 +26,7 @@ if ($conn) {
     }
 
     // Baptismal bookings
-    $sql = "SELECT id, child_first_name, child_last_name, father_first_name, mother_first_name, date_of_baptism
+    $sql = "SELECT id, child_first_name, child_last_name, father_first_name, mother_first_name, date_of_baptism, time_of_baptism
             FROM baptismal_bookings 
             WHERE event_type='baptism' AND status='Approved'";
     $result = $conn->query($sql);
@@ -120,6 +120,7 @@ if ($conn) {
         <h4> Child Name: <?= htmlspecialchars($row['child_first_name'] . ' ' . $row['child_last_name']) ?></h4>
         <p>Parents: <?= htmlspecialchars($row['father_first_name']) ?> & <?= htmlspecialchars($row['mother_first_name']) ?></p>
         <h4> Date of Baptism: <?= htmlspecialchars($row['date_of_baptism']) ?></h4> <br>
+        <h4> Time of Baptism: <?= htmlspecialchars($row['time_of_baptism']) ?></h4> <br>
         <a href="baptism.details.php?id=<?= $row['id'] ?>" class="view-more-btn">View More</a>
       </div>
     <?php endforeach; ?>
